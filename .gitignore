@@ -2,8 +2,13 @@ __pycache__/
 *.pyc
 *.pyo
 marketplace.db
+*.db-journal
 public/uploads/*
 !public/uploads/.gitkeep
 node_modules/
 .env
-*.db-journal
+.venv/
+.vscode/
+debug.log
+*.zip
+Test Listing Images/

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cork Marketplace - Reuse, Reduce, Donate</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2e7d32">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">♻️</span>
+                <h1>Cork Marketplace</h1>
+            </div>
+            <p class="tagline">Reuse items, reduce waste, support charity</p>
+        </div>
+    </header>
+
+    <!-- User Identity Banner -->
+    <div class="user-banner" id="userBanner">
+        <div class="user-info">
+            <span id="userGreeting">Welcome! Please set your name to get started.</span>
+            <button class="btn-set-name" id="btnSetName">Set Name</button>
+        </div>
+    </div>
+
+    <!-- Items Feed -->
+    <main class="items-feed" id="itemsFeed">
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">📦</div>
+            <h2>No items listed yet</h2>
+            <p>Be the first to list an item for your colleagues!</p>
+        </div>
+    </main>
+
+    <!-- Floating Action Button - List an Item -->
+    <button class="fab" id="fabListItem" title="List an item">
+        <span class="fab-icon">+</span>
+        <span class="fab-text">List an Item</span>
+    </button>
+
+    <!-- Modal: Set User Name -->
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Set Your Name</h2>
+                <button class="modal-close" id="closeNameModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter your name so others know who listed or claimed items.</p>
+                <div class="form-group">
+                    <label for="userName">Your Name *</label>
+                    <input type="text" id="userName" placeholder="e.g. John Smith" maxlength="50" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="saveUserName">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: List an Item -->
+    <div class="modal-overlay" id="listItemModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2>List an Item</h2>
+                <button class="modal-close" id="closeListModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="listItemForm">
+                    <div class="form-group">
+                        <label for="itemImage">Photo *</label>
+                        <div class="image-upload" id="imageUploadArea">
+                            <input type="file" id="itemImage" accept="image/*" capture="environment" hidden>
+                            <div class="upload-placeholder" id="uploadPlaceholder">
+                                <span class="upload-icon">📷</span>
+                                <p>Click or tap to add a photo</p>
+                            </div>
+                            <img id="imagePreview" class="image-preview" alt="Preview">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemTitle">Title *</label>
+                        <input type="text" id="itemTitle" placeholder="e.g. IKEA Bookshelf" maxlength="80" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDescription">Description *</label>
+                        <textarea id="itemDescription" placeholder="Describe the item, its condition, and any other details..." rows="4" maxlength="500" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemCategory">Category</label>
+                        <select id="itemCategory">
+                            <option value="furniture">Furniture</option>
+                            <option value="books">Books</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="clothes">Clothes</option>
+                            <option value="kitchen">Kitchen & Home</option>
+                            <option value="sports">Sports & Outdoors</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemDonation">Suggested Donation (€) *</label>
+                        <input type="number" id="itemDonation" placeholder="e.g. 5" min="0" step="0.50" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelListItem">Cancel</button>
+                <button class="btn btn-primary" id="submitListItem">List Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Claim Confirmation -->
+    <div class="modal-overlay" id="claimModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Claim This Item</h2>
+                <button class="modal-close" id="closeClaimModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="claimMessage">Are you sure you want to claim this item?</p>
+                <p class="claim-note">Please arrange with the owner to collect the item and make your donation to the charity fund.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelClaim">Cancel</button>
+                <button class="btn btn-primary" id="confirmClaim">Confirm Claim</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

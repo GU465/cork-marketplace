@@ -1,0 +1,21 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json",
+  "elmType": "div",
+  "style": {
+    "display": "flex",
+    "align-items": "center"
+  },
+  "children": [
+    {
+      "elmType": "span",
+      "style": {
+        "padding": "3px 10px",
+        "border-radius": "12px",
+        "font-size": "11px",
+        "background-color": "=if(@currentField == 'Furniture', '#e8f5e9', if(@currentField == 'Books', '#e3f2fd', if(@currentField == 'Electronics', '#fff3e0', if(@currentField == 'Clothes', '#fce4ec', if(@currentField == 'Kitchen & Home', '#f3e5f5', if(@currentField == 'Sports & Outdoors', '#e0f7fa', '#f5f5f5'))))))",
+        "color": "=if(@currentField == 'Furniture', '#2e7d32', if(@currentField == 'Books', '#1565c0', if(@currentField == 'Electronics', '#e65100', if(@currentField == 'Clothes', '#c2185b', if(@currentField == 'Kitchen & Home', '#7b1fa2', if(@currentField == 'Sports & Outdoors', '#00838f', '#616161'))))))"
+      },
+      "txtContent": "@currentField"
+    }
+  ]
+}

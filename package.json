@@ -1,0 +1,15 @@
+{
+    "name": "cork-marketplace",
+    "version": "1.0.0",
+    "description": "Clearstream Cork Marketplace - Reuse items, reduce waste, support charity",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js",
+        "dev": "node server.js"
+    },
+    "dependencies": {
+        "better-sqlite3": "^11.0.0",
+        "express": "^4.21.0",
+        "multer": "^1.4.5-lts.1"
+    }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/column-formatting.schema.json",
+  "elmType": "div",
+  "style": {
+    "display": "flex",
+    "align-items": "center"
+  },
+  "children": [
+    {
+      "elmType": "span",
+      "style": {
+        "padding": "4px 12px",
+        "border-radius": "16px",
+        "font-size": "12px",
+        "font-weight": "600",
+        "background-color": "=if(@currentField, '#c62828', '#00a3ad')",
+        "color": "#ffffff"
+      },
+      "txtContent": "=if(@currentField, '❌ Claimed', '✓ Available')"
+    }
+  ]
+}

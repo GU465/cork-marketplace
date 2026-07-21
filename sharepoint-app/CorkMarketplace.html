@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cork Marketplace - Clearstream</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --clearstream-teal: #00a3ad; --clearstream-dark: #006b70;
+    --primary: #00a3ad; --primary-light: #00bfc9; --primary-dark: #006b70;
+    --danger: #c62828; --danger-light: #ef5350; --white: #ffffff;
+    --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #eeeeee;
+    --gray-300: #e0e0e0; --gray-400: #bdbdbd; --gray-600: #757575;
+    --gray-800: #424242; --gray-900: #212121;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+    --radius: 8px; --radius-sm: 6px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; background: var(--gray-100); color: var(--gray-900); min-height: 100vh; padding-bottom: 80px; }
+.app-header { background: var(--clearstream-teal); color: var(--white); padding: 18px 20px; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-md); }
+.header-content { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; flex-direction: row-reverse; gap: 16px; }
+.header-logo { height: 66px; border-radius: 4px; }
+.header-title { flex: 1; text-align: left; }
+.header-title h1 { font-size: 1.95rem; font-weight: 700; letter-spacing: -0.3px; }
+.tagline { font-size: 1.2rem; opacity: 0.9; margin-top: 4px; }
+.mission-banner { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 14px 20px; }
+.mission-content { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 20px; }
+.mission-recycle { flex-shrink: 0; }
+.recycle-img { width: 60px; height: 60px; object-fit: contain; border-radius: 50%; }
+.mission-text { flex: 1; font-size: 0.96rem; color: var(--gray-600); line-height: 1.4; }
+.mission-charities { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.charity-logo { height: 60px; width: auto; object-fit: contain; border-radius: var(--radius-sm); }
+.user-banner { background: var(--gray-50); border-bottom: 1px solid var(--gray-200); padding: 8px 20px; position: sticky; top: 68px; z-index: 99; }
+.user-info { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.82rem; color: var(--gray-600); }
+.items-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.empty-state { text-align: center; padding: 40px 20px; color: var(--gray-600); display: none; }
+.empty-state.visible { display: block; }
+.empty-graphic { width: 180px; margin-bottom: 16px; border-radius: var(--radius); }
+.empty-state h2 { font-size: 1.1rem; margin-bottom: 6px; color: var(--gray-800); }
+.empty-state p { font-size: 0.9rem; }
+.item-card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s, transform 0.2s; display: flex; flex-direction: column; cursor: pointer; }
+.item-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.item-card.claimed { opacity: 0.7; }
+.item-card-image { width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block; background: var(--gray-200); }
+.item-card-body { padding: 8px 10px 10px; display: flex; flex-direction: column; flex: 1; }
+.item-card-title { font-size: 0.85rem; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.item-card-description { font-size: 0.75rem; color: var(--gray-600); line-height: 1.3; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+.item-card-price { font-size: 1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 4px; }
+.item-card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--gray-400); margin-bottom: 5px; }
+.item-card-category { background: var(--gray-100); padding: 2px 6px; border-radius: 10px; text-transform: capitalize; font-size: 0.65rem; }
+.item-card-lister { font-size: 0.7rem; color: var(--gray-600); margin-bottom: 5px; }
+.item-card-footer { margin-top: auto; }
+.btn-claim { width: 100%; background: var(--primary); color: var(--white); border: none; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-claim:hover { background: var(--primary-dark); }
+.btn-claim.claimed { background: var(--danger); cursor: not-allowed; pointer-events: none; font-size: 0.72rem; }
+.modal-detail { max-width: 600px; max-height: 85vh; overflow-y: auto; }
+.detail-body { padding: 0 !important; }
+.detail-image-wrap { width: 100%; max-height: 320px; overflow: hidden; background: var(--gray-200); }
+.detail-image { width: 100%; height: auto; max-height: 320px; object-fit: contain; display: block; }
+.detail-info { padding: 18px 20px 20px; }
+.detail-price { font-size: 1.4rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px; }
+.detail-category { display: inline-block; background: var(--gray-100); padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; text-transform: capitalize; color: var(--gray-600); margin-bottom: 12px; }
+.detail-description { font-size: 0.9rem; color: var(--gray-800); line-height: 1.6; margin-bottom: 14px; white-space: pre-wrap; word-wrap: break-word; }
+.detail-meta { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--gray-400); margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200); }
+.detail-claimed-info { font-size: 0.82rem; color: var(--danger); margin-bottom: 12px; font-weight: 500; }
+.detail-actions { margin-top: 4px; }
+.detail-actions .btn-claim { width: 100%; padding: 10px; font-size: 0.9rem; }
+.fab { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: var(--white); border: none; border-radius: 50px; padding: 12px 20px; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: var(--shadow-lg); transition: all 0.3s; z-index: 90; }
+.fab:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 14px 30px rgba(0,0,0,0.2); }
+.fab-icon { font-size: 1.3rem; line-height: 1; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--white); border-radius: var(--radius); width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
+.modal-large { max-width: 480px; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--gray-200); }
+.modal-header h2 { font-size: 1.05rem; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 1.5rem; color: var(--gray-600); cursor: pointer; line-height: 1; padding: 4px; }
+.modal-close:hover { color: var(--gray-900); }
+.modal-body { padding: 18px 20px; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 10px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--gray-800); margin-bottom: 5px; }
+.form-group input[type="text"], .form-group input[type="number"], .form-group textarea, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit; transition: border-color 0.2s; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 163, 173, 0.1); }
+.form-group textarea { resize: vertical; min-height: 60px; }
+.image-upload { border: 2px dashed var(--gray-300); border-radius: var(--radius-sm); padding: 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.image-upload:hover { border-color: var(--primary); background: var(--gray-50); }
+.upload-placeholder { color: var(--gray-600); }
+.upload-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.upload-placeholder p { font-size: 0.8rem; }
+.image-preview { max-width: 100%; max-height: 160px; border-radius: var(--radius-sm); display: none; }
+.image-preview.visible { display: block; }
+.claim-note { margin-top: 10px; font-size: 0.82rem; color: var(--gray-600); font-style: italic; }
+.btn { border: none; padding: 9px 18px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: var(--primary); color: var(--white); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary { background: var(--gray-200); color: var(--gray-800); }
+.btn-secondary:hover { background: var(--gray-300); }
+.hidden { display: none !important; }
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--gray-900); color: var(--white); padding: 10px 20px; border-radius: 24px; font-size: 0.82rem; z-index: 2000; animation: fadeInUp 0.3s ease, fadeOut 0.3s ease 2.7s forwards; box-shadow: var(--shadow-lg); white-space: nowrap; }
+@keyframes fadeInUp { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes fadeOut { to { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+@media (max-width: 768px) {
+    .mission-content { flex-wrap: wrap; justify-content: center; text-align: center; gap: 12px; }
+    .mission-charities { order: 3; width: 100%; justify-content: center; }
+    .items-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+}
+@media (max-width: 480px) {
+    .header-content { gap: 10px; } .header-logo { height: 36px; } .header-title h1 { font-size: 1.1rem; }
+    .items-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .fab-text { display: none; } .fab-icon { font-size: 1.5rem; } .fab { padding: 14px 16px; border-radius: 50%; }
+    .modal { margin: 8px; max-height: 90vh; overflow-y: auto; } .charity-logo { height: 36px; }
+}
+@media (min-width: 1024px) { .items-grid { grid-template-columns: repeat(5, 1fr); } }
+</style>
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <img src="images/ClearstreamLogo2.jpg" alt="Clearstream" class="header-logo">
+            <div class="header-title">
+                <h1>Cork Marketplace</h1>
+                <p class="tagline">Reuse &bull; Reduce Waste &bull; Support Charity</p>
+            </div>
+        </div>
+    </header>
+    <section class="mission-banner">
+        <div class="mission-content">
+            <div class="mission-recycle"><img src="images/Reduce Reuse Recycle2.jpg" alt="Reduce Reuse Recycle" class="recycle-img"></div>
+            <div class="mission-text"><p>Give your unwanted items a new home and help raise funds for our chosen charities. List items you no longer need and make a difference!</p></div>
+            <div class="mission-charities">
+                <img src="images/Cork Stroke Support Charity.jpg" alt="Cork Stroke Support" class="charity-logo">
+                <img src="images/Shine a Light Charity.jpg" alt="Shine A Light" class="charity-logo">
+            </div>
+        </div>
+    </section>
+    <div class="user-banner"><div class="user-info"><span id="userGreeting">Loading...</span></div></div>
+    <main class="items-container">
+        <div class="items-grid" id="itemsGrid"></div>
+        <div class="empty-state" id="emptyState">
+            <img src="images/Marketplace Graphic.jpg" alt="Marketplace" class="empty-graphic">
+            <h2>No items listed yet</h2><p>Be the first to list an item for your colleagues!</p>
+        </div>
+    </main>
+    <button class="fab" id="fabListItem" title="List an item"><span class="fab-icon">+</span><span class="fab-text">List an Item</span></button>
+    <div class="modal-overlay" id="listItemModal">
+        <div class="modal modal-large">
+            <div class="modal-header"><h2>List an Item</h2><button class="modal-close" id="closeListModal">&times;</button></div>
+            <div class="modal-body">
+                <form id="listItemForm">
+                    <div class="form-group"><label>Photo *</label><div class="image-upload" id="imageUploadArea"><input type="file" id="itemImage" accept="image/*" hidden><div class="upload-placeholder" id="uploadPlaceholder"><span class="upload-icon">📷</span><p>Click or tap to add a photo</p></div><img id="imagePreview" class="image-preview" alt="Preview"></div></div>
+                    <div class="form-group"><label>Title *</label><input type="text" id="itemTitle" placeholder="e.g. IKEA Bookshelf" maxlength="80"></div>
+                    <div class="form-group"><label>Description *</label><textarea id="itemDescription" placeholder="Describe the item, condition, details..." rows="3" maxlength="500"></textarea></div>
+                    <div class="form-group"><label>Category</label><select id="itemCategory"><option value="Furniture">Furniture</option><option value="Books">Books</option><option value="Electronics">Electronics</option><option value="Clothes">Clothes</option><option value="Kitchen & Home">Kitchen &amp; Home</option><option value="Sports & Outdoors">Sports &amp; Outdoors</option><option value="Other">Other</option></select></div>
+                    <div class="form-group"><label>Suggested Donation (€) *</label><input type="number" id="itemDonation" placeholder="e.g. 5" min="0" step="0.50"></div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" id="cancelListItem">Cancel</button><button class="btn btn-primary" id="submitListItem">List Item</button></div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal modal-detail">
+            <div class="modal-header"><h2 id="detailTitle">Item</h2><button class="modal-close" id="closeDetailModal">&times;</button></div>
+            <div class="modal-body detail-body">
+                <div class="detail-image-wrap"><img id="detailImage" class="detail-image" alt="Item photo"></div>
+                <div class="detail-info">
+                    <div class="detail-price" id="detailPrice"></div>
+                    <span class="detail-category" id="detailCategory"></span>
+                    <p class="detail-description" id="detailDescription"></p>
+                    <div class="detail-meta"><span id="detailLister"></span><span id="detailDate"></span></div>
+                    <div id="detailClaimedInfo" class="detail-claimed-info" style="display:none;"></div>
+                    <div class="detail-actions"><button class="btn-claim" id="detailClaimBtn">✓ Claim Item</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-overlay" id="claimModal">
+        <div class="modal">
+            <div class="modal-header"><h2>Claim This Item</h2><button class="modal-close" id="closeClaimModal">&times;</button></div>
+            <div class="modal-body"><p id="claimMessage"></p><p class="claim-note">Please arrange with the owner to collect the item and make your donation to the charity fund.</p></div>
+            <div class="modal-footer"><button class="btn btn-secondary" id="cancelClaim">Cancel</button><button class="btn btn-primary" id="confirmClaim">Confirm Claim</button></div>
+        </div>
+    </div>
+<script>
+(function(){
+    /* ---- Site URL detection ---- */
+    var SITE = '';
+    // 1) Try _spPageContextInfo (available if embedded in a SP page)
+    if (typeof _spPageContextInfo !== 'undefined' && _spPageContextInfo.webAbsoluteUrl) {
+        SITE = _spPageContextInfo.webAbsoluteUrl;
+    } else {
+        // 2) Parse from current URL
+        var p = window.location.pathname.split('/'), si = -1, i;
+        for (i = 0; i < p.length; i++) { if (p[i] === 'sites' || p[i] === 'teams') { si = i; break; } }
+        if (si >= 0) { SITE = window.location.origin + '/' + p.slice(1, si + 2).join('/'); }
+        else { SITE = 'https://deutscheboerse.sharepoint.com/sites/IN-WhatsupCork'; }
+    }
+    console.log('[CorkMarketplace] Detected SITE URL:', SITE);
+    console.log('[CorkMarketplace] Page origin:', window.location.origin);
+    console.log('[CorkMarketplace] Page pathname:', window.location.pathname);
+
+    var LIST='Cork Marketplace',IMGLIB='MarketplaceImages';
+    var user='',email='',digest='',itemType='',pending=null,selFile=null,detailItem=null;
+    var g=document.getElementById.bind(document);
+    var grid=g('itemsGrid'),empty=g('emptyState'),greet=g('userGreeting'),fab=g('fabListItem');
+    var lm=g('listItemModal'),clm=g('claimModal'),dm=g('detailModal');
+
+    function sf(u,o){
+        o=o||{};o.credentials='include';
+        if(!o.headers)o.headers={};
+        if(!o.headers.Accept)o.headers.Accept='application/json;odata=verbose';
+        console.log('[CorkMarketplace] API call:', o.method||'GET', u);
+        return fetch(u,o).then(function(r){
+            if(!r.ok){console.error('[CorkMarketplace] API error:', r.status, r.statusText, u);}
+            return r;
+        });
+    }
+    function gd(){return sf(SITE+'/_api/contextinfo',{method:'POST',headers:{Accept:'application/json;odata=verbose','Content-Length':'0'}}).then(function(r){return r.json();}).then(function(d){digest=d.d.GetContextWebInformation.FormDigestValue;console.log('[CorkMarketplace] Got digest');});}
+    function gu(){return sf(SITE+'/_api/web/currentuser').then(function(r){return r.json();}).then(function(d){user=d.d.Title;email=d.d.Email||d.d.LoginName;console.log('[CorkMarketplace] Current user:', user);});}
+    function gt(){return sf(SITE+"/_api/web/lists/getbytitle('"+LIST+"')?$select=ListItemEntityTypeFullName").then(function(r){return r.json();}).then(function(d){itemType=d.d.ListItemEntityTypeFullName;console.log('[CorkMarketplace] List entity type:', itemType);});}
+
+    function fi(){
+        return sf(SITE+"/_api/web/lists/getbytitle('"+LIST+"')/items?$orderby=Created desc&$top=100&$select=*,Author/Title,ClaimedBy/Title&$expand=Author,ClaimedBy")
+        .then(function(r){return r.json();}).then(function(d){
+            console.log('[CorkMarketplace] Fetched', d.d.results.length, 'items');
+            if(d.d.results.length>0) console.log('[CorkMarketplace] Sample item fields:', Object.keys(d.d.results[0]).join(', '));
+            return d.d.results.map(function(x){return{id:x.Id,title:x.Title||'',desc:x.Description1||x.Description||'',cat:x.Category||'Other',don:x.SuggestedDonation||0,img:x.ImageUrl||'',by:x.Author?x.Author.Title:'Unknown',cl:x.Claimed||false,clby:x.ClaimedBy?x.ClaimedBy.Title:'',at:x.Created,et:x.__metadata.etag,uri:x.__metadata.uri};});
+        }).catch(function(e){console.error('[CorkMarketplace] Fetch items error:', e);toast('Error loading items.');return[];});
+    }
+
+    function ui(f){
+        var fn=Date.now()+'_'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_'),sp=new URL(SITE).pathname;
+        return f.arrayBuffer().then(function(b){
+            return sf(SITE+"/_api/web/getFolderByServerRelativeUrl('"+sp+"/"+IMGLIB+"')/files/add(overwrite=true,url='"+fn+"')",{method:'POST',headers:{Accept:'application/json;odata=verbose','X-RequestDigest':digest},body:b});
+        }).then(function(r){if(!r.ok)throw new Error('Upload failed');return r.json();}).then(function(d){return SITE+'/'+IMGLIB+'/'+fn;});
+    }
+
+    function ci(t,ds,ca,dn,iu){
+        return sf(SITE+"/_api/web/lists/getbytitle('"+LIST+"')/items",{method:'POST',headers:{Accept:'application/json;odata=verbose','Content-Type':'application/json;odata=verbose','X-RequestDigest':digest},body:JSON.stringify({__metadata:{type:itemType},Title:t,Description1:ds,Category:ca,SuggestedDonation:dn,ImageUrl:iu,Claimed:false})})
+        .then(function(r){if(!r.ok)return r.text().then(function(t){console.error('[CorkMarketplace] Create item error:', t);throw new Error(t);});return r.json();});
+    }
+
+    function claim(it){
+        return sf(SITE+"/_api/web/ensureuser('"+email+"')",{method:'POST',headers:{Accept:'application/json;odata=verbose','X-RequestDigest':digest}})
+        .then(function(r){return r.json();}).then(function(u){
+            return sf(SITE+"/_api/web/lists/getbytitle('"+LIST+"')/items("+it.id+")",{method:'POST',headers:{Accept:'application/json;odata=verbose','Content-Type':'application/json;odata=verbose','X-RequestDigest':digest,'X-HTTP-Method':'MERGE','If-Match':'*'},body:JSON.stringify({__metadata:{type:itemType},Claimed:true,ClaimedById:u.d.Id})});
+        }).then(function(r){if(!r.ok)throw new Error('Claim failed');});
+    }
+
+    function render(){
+        if(user)greet.textContent='Hello, '+user+'!';
+        fi().then(function(items){
+            grid.innerHTML='';
+            if(!items.length){empty.classList.add('visible');return;}
+            empty.classList.remove('visible');
+            items.forEach(function(it){grid.appendChild(card(it));});
+        });
+    }
+
+    function card(it){
+        var c=document.createElement('div');c.className='item-card'+(it.cl?' claimed':'');
+        var ta=ago(new Date(it.at).getTime());
+        c.innerHTML='<img class="item-card-image" src="'+ea(it.img)+'" alt="'+ea(it.title)+'" loading="lazy" onerror="this.style.display=\'none\'">'+'<div class="item-card-body">'+'<div class="item-card-title">'+eh(it.title)+'</div>'+'<div class="item-card-description">'+eh(it.desc)+'</div>'+'<div class="item-card-price">\u20AC'+Number(it.don).toFixed(2)+'</div>'+'<div class="item-card-meta"><span class="item-card-category">'+eh(it.cat)+'</span><span>'+ta+'</span></div>'+'<div class="item-card-lister">By: '+eh(it.by)+'</div>'+(it.cl?'<div style="font-size:0.7rem;color:#c62828;margin-bottom:6px">Claimed by: '+eh(it.clby)+'</div>':'')+'<div class="item-card-footer"><button class="btn-claim'+(it.cl?' claimed':'')+'" '+(it.cl?'disabled':'')+'>'+( it.cl?'\u274C No Longer Available':'\u2713 Claim Item')+'</button></div></div>';
+        c.addEventListener('click',function(e){if(!e.target.closest('.btn-claim'))openD(it);});
+        var b=c.querySelector('.btn-claim');if(!it.cl)b.addEventListener('click',function(e){e.stopPropagation();openC(it);});
+        return c;
+    }
+
+    function openD(it){
+        detailItem=it;g('detailTitle').textContent=it.title;g('detailImage').src=it.img||'';g('detailImage').style.display=it.img?'block':'none';
+        g('detailPrice').textContent='\u20AC'+Number(it.don).toFixed(2)+' suggested donation';g('detailCategory').textContent=it.cat;
+        g('detailDescription').textContent=it.desc;g('detailLister').textContent='Listed by: '+it.by;
+        g('detailDate').textContent=new Date(it.at).toLocaleDateString('en-IE',{day:'numeric',month:'short',year:'numeric'});
+        var ci=g('detailClaimedInfo'),cb=g('detailClaimBtn');
+        if(it.cl){ci.style.display='block';ci.textContent='\u274C Claimed by '+it.clby;cb.className='btn-claim claimed';cb.textContent='\u274C No Longer Available';cb.disabled=true;}
+        else{ci.style.display='none';cb.className='btn-claim';cb.textContent='\u2713 Claim This Item';cb.disabled=false;}
+        dm.classList.add('active');
+    }
+    function openC(it){pending=it;g('claimMessage').textContent='Claim "'+it.title+'" for \u20AC'+Number(it.don).toFixed(2)+'?';clm.classList.add('active');}
+
+    function doClaim(){
+        if(!pending)return;var b=g('confirmClaim');b.disabled=true;b.textContent='Claiming...';
+        gd().then(function(){return claim(pending);}).then(function(){clm.classList.remove('active');pending=null;render();toast('Item claimed! \uD83E\uDD1D');})
+        .catch(function(e){toast('Error: '+e.message);}).finally(function(){b.disabled=false;b.textContent='Confirm Claim';});
+    }
+
+    function doList(){
+        if(!selFile){toast('Please add a photo.');return;}var t=g('itemTitle'),d=g('itemDescription'),dn=g('itemDonation'),ca=g('itemCategory');
+        if(!t.value.trim()){toast('Enter a title.');return;}if(!d.value.trim()){toast('Enter a description.');return;}if(!dn.value||Number(dn.value)<0){toast('Enter donation amount.');return;}
+        var b=g('submitListItem');b.disabled=true;b.textContent='Listing...';
+        gd().then(function(){return ui(selFile);}).then(function(url){return ci(t.value.trim(),d.value.trim(),ca.value,Number(dn.value),url);})
+        .then(function(){lm.classList.remove('active');g('listItemForm').reset();selFile=null;g('imagePreview').classList.remove('visible');g('uploadPlaceholder').classList.remove('hidden');render();toast('Item listed! \uD83C\uDF89');})
+        .catch(function(e){console.error(e);toast('Error: '+e.message);}).finally(function(){b.disabled=false;b.textContent='List Item';});
+    }
+
+    function imgSel(e){var f=e.target.files[0];if(!f||!f.type.startsWith('image/'))return;selFile=f;var r=new FileReader();r.onload=function(ev){g('imagePreview').src=ev.target.result;g('imagePreview').classList.add('visible');g('uploadPlaceholder').classList.add('hidden');};r.readAsDataURL(f);}
+
+    function eh(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+    function ea(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+    function ago(t){var s=Math.floor((Date.now()-t)/1000);if(s<60)return'Just now';var m=Math.floor(s/60);if(m<60)return m+'m ago';var h=Math.floor(m/60);if(h<24)return h+'h ago';var d=Math.floor(h/24);if(d<7)return d+'d ago';return new Date(t).toLocaleDateString();}
+    function toast(m){document.querySelectorAll('.toast').forEach(function(t){t.remove();});var t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove();},3000);}
+
+    fab.addEventListener('click',function(){lm.classList.add('active');});
+    g('closeListModal').addEventListener('click',function(){lm.classList.remove('active');});
+    g('cancelListItem').addEventListener('click',function(){lm.classList.remove('active');});
+    g('submitListItem').addEventListener('click',doList);
+    g('imageUploadArea').addEventListener('click',function(){g('itemImage').click();});
+    g('itemImage').addEventListener('change',imgSel);
+    g('closeClaimModal').addEventListener('click',function(){clm.classList.remove('active');});
+    g('cancelClaim').addEventListener('click',function(){clm.classList.remove('active');});
+    g('confirmClaim').addEventListener('click',doClaim);
+    g('closeDetailModal').addEventListener('click',function(){dm.classList.remove('active');});
+    g('detailClaimBtn').addEventListener('click',function(){if(detailItem&&!detailItem.cl){dm.classList.remove('active');openC(detailItem);}});
+    [lm,clm,dm].forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('active');});});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')[lm,clm,dm].forEach(function(m){m.classList.remove('active');});});
+    setInterval(render,30000);
+
+    Promise.all([gu(),gd(),gt()]).then(function(){render();}).catch(function(e){
+        console.error('[CorkMarketplace] Init error:', e);
+        console.error('[CorkMarketplace] SITE was:', SITE);
+        greet.textContent='Error: ' + (e.message||e) + ' | Site: ' + SITE;
+    });
+})();
+</script>
+</body>
+</html>

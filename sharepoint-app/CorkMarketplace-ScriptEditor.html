@@ -1,0 +1,398 @@
+<!--
+ Cork Marketplace - Script Editor Web Part version
+ 
+ HOW TO USE:
+ 1. Go to your SharePoint site: https://deutscheboerse.sharepoint.com/sites/IN-WhatsupCork
+ 2. Click the gear icon (Settings) > Add a page  -OR-  go to Site Pages and create a new page
+ 3. If you can create a CLASSIC page (wiki page or web part page):
+    a. Edit the page
+    b. Insert > Web Part > Media and Content > Script Editor
+    c. Click "Edit Snippet" in the web part
+    d. Paste this ENTIRE file content into the snippet editor
+    e. Click "Insert", then Save/Publish the page
+ 
+ 4. If you only have MODERN pages:
+    a. Edit the page  
+    b. Add a web part > search for "Embed"
+    c. Paste this content into the Embed web part
+    d. Publish the page
+ 
+ NOTE: If Script Editor is not available, your SharePoint admin may need to run:
+   Set-SPOSite -Identity https://deutscheboerse.sharepoint.com/sites/IN-WhatsupCork -DenyAddAndCustomizePages $false
+   (This enables custom scripts on the site)
+-->
+<style>
+.cm-wrap *, .cm-wrap *::before, .cm-wrap *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.cm-wrap {
+    --primary: #00a3ad; --primary-dark: #006b70;
+    --danger: #c62828; --white: #ffffff;
+    --gray-50: #fafafa; --gray-100: #f5f5f5; --gray-200: #eeeeee;
+    --gray-300: #e0e0e0; --gray-400: #bdbdbd; --gray-600: #757575;
+    --gray-800: #424242; --gray-900: #212121;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+    --radius: 8px; --radius-sm: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    color: var(--gray-900); min-height: 80vh; padding-bottom: 80px;
+}
+.cm-header { background: var(--primary); color: var(--white); padding: 18px 20px; box-shadow: var(--shadow-md); border-radius: var(--radius) var(--radius) 0 0; }
+.cm-header-content { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; flex-direction: row-reverse; gap: 16px; }
+.cm-header-logo { height: 66px; border-radius: 4px; }
+.cm-header-title { flex: 1; text-align: left; }
+.cm-header-title h1 { font-size: 1.95rem; font-weight: 700; letter-spacing: -0.3px; color: var(--white); }
+.cm-tagline { font-size: 1.2rem; opacity: 0.9; margin-top: 4px; }
+.cm-mission { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 14px 20px; }
+.cm-mission-content { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 20px; }
+.cm-recycle-img { width: 60px; height: 60px; object-fit: contain; border-radius: 50%; }
+.cm-mission-text { flex: 1; font-size: 0.96rem; color: var(--gray-600); line-height: 1.4; }
+.cm-charities { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.cm-charity-logo { height: 60px; width: auto; object-fit: contain; border-radius: var(--radius-sm); }
+.cm-user-banner { background: var(--gray-50); border-bottom: 1px solid var(--gray-200); padding: 8px 20px; }
+.cm-user-info { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.82rem; color: var(--gray-600); }
+.cm-items-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.cm-items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.cm-empty { text-align: center; padding: 40px 20px; color: var(--gray-600); display: none; }
+.cm-empty.visible { display: block; }
+.cm-empty-img { width: 180px; margin-bottom: 16px; border-radius: var(--radius); }
+.cm-empty h2 { font-size: 1.1rem; margin-bottom: 6px; color: var(--gray-800); }
+.cm-empty p { font-size: 0.9rem; }
+.cm-card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s, transform 0.2s; display: flex; flex-direction: column; cursor: pointer; }
+.cm-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.cm-card.claimed { opacity: 0.7; }
+.cm-card-image { width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block; background: var(--gray-200); }
+.cm-card-body { padding: 8px 10px 10px; display: flex; flex-direction: column; flex: 1; }
+.cm-card-title { font-size: 0.85rem; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cm-card-desc { font-size: 0.75rem; color: var(--gray-600); line-height: 1.3; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
+.cm-card-price { font-size: 1rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 4px; }
+.cm-card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--gray-400); margin-bottom: 5px; }
+.cm-card-cat { background: var(--gray-100); padding: 2px 6px; border-radius: 10px; text-transform: capitalize; font-size: 0.65rem; }
+.cm-card-lister { font-size: 0.7rem; color: var(--gray-600); margin-bottom: 5px; }
+.cm-card-footer { margin-top: auto; }
+.cm-btn-claim { width: 100%; background: var(--primary); color: var(--white); border: none; padding: 7px 12px; border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.cm-btn-claim:hover { background: var(--primary-dark); }
+.cm-btn-claim.claimed { background: var(--danger); cursor: not-allowed; pointer-events: none; font-size: 0.72rem; }
+.cm-detail { max-width: 600px; max-height: 85vh; overflow-y: auto; }
+.cm-detail-body { padding: 0 !important; }
+.cm-detail-img-wrap { width: 100%; max-height: 320px; overflow: hidden; background: var(--gray-200); }
+.cm-detail-img { width: 100%; height: auto; max-height: 320px; object-fit: contain; display: block; }
+.cm-detail-info { padding: 18px 20px 20px; }
+.cm-detail-price { font-size: 1.4rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 6px; }
+.cm-detail-cat { display: inline-block; background: var(--gray-100); padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; text-transform: capitalize; color: var(--gray-600); margin-bottom: 12px; }
+.cm-detail-desc { font-size: 0.9rem; color: var(--gray-800); line-height: 1.6; margin-bottom: 14px; white-space: pre-wrap; word-wrap: break-word; }
+.cm-detail-meta { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--gray-400); margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200); }
+.cm-detail-claimed { font-size: 0.82rem; color: var(--danger); margin-bottom: 12px; font-weight: 500; }
+.cm-detail-actions { margin-top: 4px; }
+.cm-detail-actions .cm-btn-claim { width: 100%; padding: 10px; font-size: 0.9rem; }
+.cm-fab { position: fixed; bottom: 20px; right: 20px; background: var(--primary); color: var(--white); border: none; border-radius: 50px; padding: 12px 20px; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; box-shadow: var(--shadow-lg); transition: all 0.3s; z-index: 90; }
+.cm-fab:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 14px 30px rgba(0,0,0,0.2); }
+.cm-fab-icon { font-size: 1.3rem; line-height: 1; }
+.cm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
+.cm-overlay.active { display: flex; }
+.cm-modal { background: var(--white); border-radius: var(--radius); width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); animation: cmSlideUp 0.3s ease; }
+.cm-modal-lg { max-width: 480px; }
+@keyframes cmSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.cm-modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--gray-200); }
+.cm-modal-header h2 { font-size: 1.05rem; font-weight: 600; }
+.cm-modal-close { background: none; border: none; font-size: 1.5rem; color: var(--gray-600); cursor: pointer; line-height: 1; padding: 4px; }
+.cm-modal-close:hover { color: var(--gray-900); }
+.cm-modal-body { padding: 18px 20px; }
+.cm-modal-footer { padding: 12px 20px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 10px; }
+.cm-fg { margin-bottom: 14px; }
+.cm-fg label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--gray-800); margin-bottom: 5px; }
+.cm-fg input[type="text"], .cm-fg input[type="number"], .cm-fg textarea, .cm-fg select { width: 100%; padding: 9px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius-sm); font-size: 0.85rem; font-family: inherit; transition: border-color 0.2s; }
+.cm-fg input:focus, .cm-fg textarea:focus, .cm-fg select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,163,173,0.1); }
+.cm-fg textarea { resize: vertical; min-height: 60px; }
+.cm-upload { border: 2px dashed var(--gray-300); border-radius: var(--radius-sm); padding: 16px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+.cm-upload:hover { border-color: var(--primary); background: var(--gray-50); }
+.cm-upload-ph { color: var(--gray-600); }
+.cm-upload-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.cm-upload-ph p { font-size: 0.8rem; }
+.cm-img-preview { max-width: 100%; max-height: 160px; border-radius: var(--radius-sm); display: none; }
+.cm-img-preview.visible { display: block; }
+.cm-claim-note { margin-top: 10px; font-size: 0.82rem; color: var(--gray-600); font-style: italic; }
+.cm-btn { border: none; padding: 9px 18px; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.cm-btn-primary { background: var(--primary); color: var(--white); }
+.cm-btn-primary:hover { background: var(--primary-dark); }
+.cm-btn-secondary { background: var(--gray-200); color: var(--gray-800); }
+.cm-btn-secondary:hover { background: var(--gray-300); }
+.cm-hidden { display: none !important; }
+.cm-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--gray-900); color: var(--white); padding: 10px 20px; border-radius: 24px; font-size: 0.82rem; z-index: 2000; animation: cmFadeIn 0.3s ease, cmFadeOut 0.3s ease 2.7s forwards; box-shadow: var(--shadow-lg); white-space: nowrap; }
+@keyframes cmFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes cmFadeOut { to { opacity: 0; transform: translateX(-50%) translateY(10px); } }
+@media (max-width: 768px) {
+    .cm-mission-content { flex-wrap: wrap; justify-content: center; text-align: center; gap: 12px; }
+    .cm-charities { order: 3; width: 100%; justify-content: center; }
+    .cm-items-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+}
+@media (max-width: 480px) {
+    .cm-header-content { gap: 10px; } .cm-header-logo { height: 36px; } .cm-header-title h1 { font-size: 1.1rem; }
+    .cm-items-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .cm-fab-text { display: none; } .cm-fab-icon { font-size: 1.5rem; } .cm-fab { padding: 14px 16px; border-radius: 50%; }
+    .cm-modal { margin: 8px; max-height: 90vh; overflow-y: auto; } .cm-charity-logo { height: 36px; }
+}
+@media (min-width: 1024px) { .cm-items-grid { grid-template-columns: repeat(5, 1fr); } }
+</style>
+
+<div class="cm-wrap">
+    <header class="cm-header">
+        <div class="cm-header-content">
+            <img src="/sites/IN-WhatsupCork/SiteAssets/CorkMarketplace/images/ClearstreamLogo2.jpg" alt="Clearstream" class="cm-header-logo">
+            <div class="cm-header-title">
+                <h1>Cork Marketplace</h1>
+                <p class="cm-tagline">Reuse &bull; Reduce Waste &bull; Support Charity</p>
+            </div>
+        </div>
+    </header>
+    <section class="cm-mission">
+        <div class="cm-mission-content">
+            <div><img src="/sites/IN-WhatsupCork/SiteAssets/CorkMarketplace/images/Reduce Reuse Recycle2.jpg" alt="Recycle" class="cm-recycle-img"></div>
+            <div class="cm-mission-text"><p>Give your unwanted items a new home and help raise funds for our chosen charities. List items you no longer need and make a difference!</p></div>
+            <div class="cm-charities">
+                <img src="/sites/IN-WhatsupCork/SiteAssets/CorkMarketplace/images/Cork Stroke Support Charity.jpg" alt="Cork Stroke Support" class="cm-charity-logo">
+                <img src="/sites/IN-WhatsupCork/SiteAssets/CorkMarketplace/images/Shine a Light Charity.jpg" alt="Shine A Light" class="cm-charity-logo">
+            </div>
+        </div>
+    </section>
+    <div class="cm-user-banner"><div class="cm-user-info"><span id="cmGreeting">Loading...</span></div></div>
+    <main class="cm-items-container">
+        <div class="cm-items-grid" id="cmGrid"></div>
+        <div class="cm-empty" id="cmEmpty">
+            <img src="/sites/IN-WhatsupCork/SiteAssets/CorkMarketplace/images/Marketplace Graphic.jpg" alt="Marketplace" class="cm-empty-img">
+            <h2>No items listed yet</h2><p>Be the first to list an item for your colleagues!</p>
+        </div>
+    </main>
+    <button class="cm-fab" id="cmFab" title="List an item"><span class="cm-fab-icon">+</span><span class="cm-fab-text">List an Item</span></button>
+    <div class="cm-overlay" id="cmListModal">
+        <div class="cm-modal cm-modal-lg">
+            <div class="cm-modal-header"><h2>List an Item</h2><button class="cm-modal-close" id="cmCloseList">&times;</button></div>
+            <div class="cm-modal-body">
+                <form id="cmListForm">
+                    <div class="cm-fg"><label>Photo *</label><div class="cm-upload" id="cmUploadArea"><input type="file" id="cmFileInput" accept="image/*" hidden><div class="cm-upload-ph" id="cmUploadPH"><span class="cm-upload-icon">📷</span><p>Click or tap to add a photo</p></div><img id="cmImgPreview" class="cm-img-preview" alt="Preview"></div></div>
+                    <div class="cm-fg"><label>Title *</label><input type="text" id="cmTitle" placeholder="e.g. IKEA Bookshelf" maxlength="80"></div>
+                    <div class="cm-fg"><label>Description *</label><textarea id="cmDesc" placeholder="Describe the item, condition, details..." rows="3" maxlength="500"></textarea></div>
+                    <div class="cm-fg"><label>Category</label><select id="cmCategory"><option value="Furniture">Furniture</option><option value="Books">Books</option><option value="Electronics">Electronics</option><option value="Clothes">Clothes</option><option value="Kitchen & Home">Kitchen &amp; Home</option><option value="Sports & Outdoors">Sports &amp; Outdoors</option><option value="Other">Other</option></select></div>
+                    <div class="cm-fg"><label>Suggested Donation (€) *</label><input type="number" id="cmDonation" placeholder="e.g. 5" min="0" step="0.50"></div>
+                </form>
+            </div>
+            <div class="cm-modal-footer"><button class="cm-btn cm-btn-secondary" id="cmCancelList">Cancel</button><button class="cm-btn cm-btn-primary" id="cmSubmitList">List Item</button></div>
+        </div>
+    </div>
+    <div class="cm-overlay" id="cmDetailModal">
+        <div class="cm-modal cm-detail">
+            <div class="cm-modal-header"><h2 id="cmDetailTitle">Item</h2><button class="cm-modal-close" id="cmCloseDetail">&times;</button></div>
+            <div class="cm-modal-body cm-detail-body">
+                <div class="cm-detail-img-wrap"><img id="cmDetailImg" class="cm-detail-img" alt="Item photo"></div>
+                <div class="cm-detail-info">
+                    <div class="cm-detail-price" id="cmDetailPrice"></div>
+                    <span class="cm-detail-cat" id="cmDetailCat"></span>
+                    <p class="cm-detail-desc" id="cmDetailDesc"></p>
+                    <div class="cm-detail-meta"><span id="cmDetailLister"></span><span id="cmDetailDate"></span></div>
+                    <div id="cmDetailClaimed" class="cm-detail-claimed" style="display:none;"></div>
+                    <div class="cm-detail-actions"><button class="cm-btn-claim" id="cmDetailClaimBtn">✓ Claim Item</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="cm-overlay" id="cmClaimModal">
+        <div class="cm-modal">
+            <div class="cm-modal-header"><h2>Claim This Item</h2><button class="cm-modal-close" id="cmCloseClaim">&times;</button></div>
+            <div class="cm-modal-body"><p id="cmClaimMsg"></p><p class="cm-claim-note">Please arrange with the owner to collect the item and make your donation to the charity fund.</p></div>
+            <div class="cm-modal-footer"><button class="cm-btn cm-btn-secondary" id="cmCancelClaim">Cancel</button><button class="cm-btn cm-btn-primary" id="cmConfirmClaim">Confirm Claim</button></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+(function(){
+    /* Site URL - use _spPageContextInfo which is available on SharePoint pages */
+    var SITE = '';
+    if (typeof _spPageContextInfo !== 'undefined' && _spPageContextInfo.webAbsoluteUrl) {
+        SITE = _spPageContextInfo.webAbsoluteUrl;
+    } else {
+        var p = window.location.pathname.split('/'), si = -1, i;
+        for (i = 0; i < p.length; i++) { if (p[i] === 'sites' || p[i] === 'teams') { si = i; break; } }
+        SITE = si >= 0 ? window.location.origin + '/' + p.slice(1, si + 2).join('/') : 'https://deutscheboerse.sharepoint.com/sites/IN-WhatsupCork';
+    }
+    console.log('[CorkMarketplace] SITE:', SITE);
+
+    var LIST = 'Cork Marketplace', IMGLIB = 'MarketplaceImages';
+    var user = '', email = '', digest = '', itemType = '', pending = null, selFile = null, detailItem = null;
+    var $ = document.getElementById.bind(document);
+    var grid = $('cmGrid'), empty = $('cmEmpty'), greet = $('cmGreeting');
+    var lm = $('cmListModal'), clm = $('cmClaimModal'), dm = $('cmDetailModal');
+
+    function sf(u, o) {
+        o = o || {}; o.credentials = 'include';
+        if (!o.headers) o.headers = {};
+        if (!o.headers['Accept']) o.headers['Accept'] = 'application/json;odata=verbose';
+        return fetch(u, o);
+    }
+
+    function gd() {
+        return sf(SITE + '/_api/contextinfo', { method: 'POST', headers: { 'Accept': 'application/json;odata=verbose' } })
+            .then(function(r) { return r.json(); })
+            .then(function(d) { digest = d.d.GetContextWebInformation.FormDigestValue; });
+    }
+
+    function gu() {
+        return sf(SITE + '/_api/web/currentuser')
+            .then(function(r) { return r.json(); })
+            .then(function(d) { user = d.d.Title; email = d.d.Email || d.d.LoginName; });
+    }
+
+    function gt() {
+        return sf(SITE + "/_api/web/lists/getbytitle('" + LIST + "')?$select=ListItemEntityTypeFullName")
+            .then(function(r) { return r.json(); })
+            .then(function(d) { itemType = d.d.ListItemEntityTypeFullName; });
+    }
+
+    function fi() {
+        return sf(SITE + "/_api/web/lists/getbytitle('" + LIST + "')/items?$orderby=Created desc&$top=100&$select=*,Author/Title,ClaimedBy/Title&$expand=Author,ClaimedBy")
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                return d.d.results.map(function(x) {
+                    return {
+                        id: x.Id, title: x.Title || '', desc: x.Description1 || x.Description || '',
+                        cat: x.Category || 'Other', don: x.SuggestedDonation || 0,
+                        img: x.ImageUrl || '', by: x.Author ? x.Author.Title : 'Unknown',
+                        cl: x.Claimed || false, clby: x.ClaimedBy ? x.ClaimedBy.Title : '',
+                        at: x.Created
+                    };
+                });
+            })
+            .catch(function(e) { console.error(e); toast('Error loading items.'); return []; });
+    }
+
+    function ui(f) {
+        var fn = Date.now() + '_' + f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+        var sp = new URL(SITE).pathname;
+        return f.arrayBuffer().then(function(b) {
+            return sf(SITE + "/_api/web/getFolderByServerRelativeUrl('" + sp + "/" + IMGLIB + "')/files/add(overwrite=true,url='" + fn + "')", {
+                method: 'POST', headers: { 'Accept': 'application/json;odata=verbose', 'X-RequestDigest': digest }, body: b
+            });
+        }).then(function(r) { if (!r.ok) throw new Error('Upload failed'); return r.json(); })
+          .then(function() { return SITE + '/' + IMGLIB + '/' + fn; });
+    }
+
+    function ci(t, ds, ca, dn, iu) {
+        return sf(SITE + "/_api/web/lists/getbytitle('" + LIST + "')/items", {
+            method: 'POST',
+            headers: { 'Accept': 'application/json;odata=verbose', 'Content-Type': 'application/json;odata=verbose', 'X-RequestDigest': digest },
+            body: JSON.stringify({ __metadata: { type: itemType }, Title: t, Description1: ds, Category: ca, SuggestedDonation: dn, ImageUrl: iu, Claimed: false })
+        }).then(function(r) { if (!r.ok) return r.text().then(function(t) { throw new Error(t); }); return r.json(); });
+    }
+
+    function claim(it) {
+        return sf(SITE + "/_api/web/ensureuser('" + email + "')", {
+            method: 'POST', headers: { 'Accept': 'application/json;odata=verbose', 'X-RequestDigest': digest }
+        }).then(function(r) { return r.json(); }).then(function(u) {
+            return sf(SITE + "/_api/web/lists/getbytitle('" + LIST + "')/items(" + it.id + ")", {
+                method: 'POST',
+                headers: { 'Accept': 'application/json;odata=verbose', 'Content-Type': 'application/json;odata=verbose', 'X-RequestDigest': digest, 'X-HTTP-Method': 'MERGE', 'If-Match': '*' },
+                body: JSON.stringify({ __metadata: { type: itemType }, Claimed: true, ClaimedById: u.d.Id })
+            });
+        }).then(function(r) { if (!r.ok) throw new Error('Claim failed'); });
+    }
+
+    function render() {
+        if (user) greet.textContent = 'Hello, ' + user + '!';
+        fi().then(function(items) {
+            grid.innerHTML = '';
+            if (!items.length) { empty.classList.add('visible'); return; }
+            empty.classList.remove('visible');
+            items.forEach(function(it) { grid.appendChild(card(it)); });
+        });
+    }
+
+    function card(it) {
+        var c = document.createElement('div'); c.className = 'cm-card' + (it.cl ? ' claimed' : '');
+        var ta = ago(new Date(it.at).getTime());
+        c.innerHTML =
+            '<img class="cm-card-image" src="' + ea(it.img) + '" alt="' + ea(it.title) + '" loading="lazy" onerror="this.style.display=\'none\'">' +
+            '<div class="cm-card-body">' +
+            '<div class="cm-card-title">' + eh(it.title) + '</div>' +
+            '<div class="cm-card-desc">' + eh(it.desc) + '</div>' +
+            '<div class="cm-card-price">\u20AC' + Number(it.don).toFixed(2) + '</div>' +
+            '<div class="cm-card-meta"><span class="cm-card-cat">' + eh(it.cat) + '</span><span>' + ta + '</span></div>' +
+            '<div class="cm-card-lister">By: ' + eh(it.by) + '</div>' +
+            (it.cl ? '<div style="font-size:0.7rem;color:#c62828;margin-bottom:6px">Claimed by: ' + eh(it.clby) + '</div>' : '') +
+            '<div class="cm-card-footer"><button class="cm-btn-claim' + (it.cl ? ' claimed' : '') + '" ' + (it.cl ? 'disabled' : '') + '>' + (it.cl ? '\u274C No Longer Available' : '\u2713 Claim Item') + '</button></div></div>';
+        c.addEventListener('click', function(e) { if (!e.target.closest('.cm-btn-claim')) openD(it); });
+        var b = c.querySelector('.cm-btn-claim');
+        if (!it.cl) b.addEventListener('click', function(e) { e.stopPropagation(); openC(it); });
+        return c;
+    }
+
+    function openD(it) {
+        detailItem = it;
+        $('cmDetailTitle').textContent = it.title;
+        $('cmDetailImg').src = it.img || ''; $('cmDetailImg').style.display = it.img ? 'block' : 'none';
+        $('cmDetailPrice').textContent = '\u20AC' + Number(it.don).toFixed(2) + ' suggested donation';
+        $('cmDetailCat').textContent = it.cat;
+        $('cmDetailDesc').textContent = it.desc;
+        $('cmDetailLister').textContent = 'Listed by: ' + it.by;
+        $('cmDetailDate').textContent = new Date(it.at).toLocaleDateString('en-IE', { day: 'numeric', month: 'short', year: 'numeric' });
+        var ci = $('cmDetailClaimed'), cb = $('cmDetailClaimBtn');
+        if (it.cl) { ci.style.display = 'block'; ci.textContent = '\u274C Claimed by ' + it.clby; cb.className = 'cm-btn-claim claimed'; cb.textContent = '\u274C No Longer Available'; cb.disabled = true; }
+        else { ci.style.display = 'none'; cb.className = 'cm-btn-claim'; cb.textContent = '\u2713 Claim This Item'; cb.disabled = false; }
+        dm.classList.add('active');
+    }
+
+    function openC(it) { pending = it; $('cmClaimMsg').textContent = 'Claim "' + it.title + '" for \u20AC' + Number(it.don).toFixed(2) + '?'; clm.classList.add('active'); }
+
+    function doClaim() {
+        if (!pending) return; var b = $('cmConfirmClaim'); b.disabled = true; b.textContent = 'Claiming...';
+        gd().then(function() { return claim(pending); })
+            .then(function() { clm.classList.remove('active'); pending = null; render(); toast('Item claimed! \uD83E\uDD1D'); })
+            .catch(function(e) { toast('Error: ' + e.message); })
+            .finally(function() { b.disabled = false; b.textContent = 'Confirm Claim'; });
+    }
+
+    function doList() {
+        if (!selFile) { toast('Please add a photo.'); return; }
+        var t = $('cmTitle'), d = $('cmDesc'), dn = $('cmDonation'), ca = $('cmCategory');
+        if (!t.value.trim()) { toast('Enter a title.'); return; }
+        if (!d.value.trim()) { toast('Enter a description.'); return; }
+        if (!dn.value || Number(dn.value) < 0) { toast('Enter donation amount.'); return; }
+        var b = $('cmSubmitList'); b.disabled = true; b.textContent = 'Listing...';
+        gd().then(function() { return ui(selFile); })
+            .then(function(url) { return ci(t.value.trim(), d.value.trim(), ca.value, Number(dn.value), url); })
+            .then(function() { lm.classList.remove('active'); $('cmListForm').reset(); selFile = null; $('cmImgPreview').classList.remove('visible'); $('cmUploadPH').classList.remove('cm-hidden'); render(); toast('Item listed! \uD83C\uDF89'); })
+            .catch(function(e) { console.error(e); toast('Error: ' + e.message); })
+            .finally(function() { b.disabled = false; b.textContent = 'List Item'; });
+    }
+
+    function imgSel(e) {
+        var f = e.target.files[0]; if (!f || !f.type.startsWith('image/')) return;
+        selFile = f; var r = new FileReader();
+        r.onload = function(ev) { $('cmImgPreview').src = ev.target.result; $('cmImgPreview').classList.add('visible'); $('cmUploadPH').classList.add('cm-hidden'); };
+        r.readAsDataURL(f);
+    }
+
+    function eh(s) { if (!s) return ''; var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    function ea(s) { if (!s) return ''; return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function ago(t) { var s = Math.floor((Date.now() - t) / 1000); if (s < 60) return 'Just now'; var m = Math.floor(s / 60); if (m < 60) return m + 'm ago'; var h = Math.floor(m / 60); if (h < 24) return h + 'h ago'; var d = Math.floor(h / 24); if (d < 7) return d + 'd ago'; return new Date(t).toLocaleDateString(); }
+    function toast(m) { document.querySelectorAll('.cm-toast').forEach(function(t) { t.remove(); }); var t = document.createElement('div'); t.className = 'cm-toast'; t.textContent = m; document.body.appendChild(t); setTimeout(function() { t.remove(); }, 3000); }
+
+    $('cmFab').addEventListener('click', function() { lm.classList.add('active'); });
+    $('cmCloseList').addEventListener('click', function() { lm.classList.remove('active'); });
+    $('cmCancelList').addEventListener('click', function() { lm.classList.remove('active'); });
+    $('cmSubmitList').addEventListener('click', doList);
+    $('cmUploadArea').addEventListener('click', function() { $('cmFileInput').click(); });
+    $('cmFileInput').addEventListener('change', imgSel);
+    $('cmCloseClaim').addEventListener('click', function() { clm.classList.remove('active'); });
+    $('cmCancelClaim').addEventListener('click', function() { clm.classList.remove('active'); });
+    $('cmConfirmClaim').addEventListener('click', doClaim);
+    $('cmCloseDetail').addEventListener('click', function() { dm.classList.remove('active'); });
+    $('cmDetailClaimBtn').addEventListener('click', function() { if (detailItem && !detailItem.cl) { dm.classList.remove('active'); openC(detailItem); } });
+    [lm, clm, dm].forEach(function(m) { m.addEventListener('click', function(e) { if (e.target === m) m.classList.remove('active'); }); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') [lm, clm, dm].forEach(function(m) { m.classList.remove('active'); }); });
+    setInterval(render, 30000);
+
+    Promise.all([gu(), gd(), gt()]).then(function() { render(); }).catch(function(e) {
+        console.error('[CorkMarketplace] Init error:', e);
+        greet.textContent = 'Error: ' + (e.message || e) + ' | Site: ' + SITE;
+    });
+})();
+</script>
