@@ -75,12 +75,22 @@ def row_to_dict(row):
     return dict(row)
 
 
+# Initialize database on module load (required for gunicorn)
+init_db()
+
+
 # ===== Routes =====
 
 @app.route('/')
 def index():
     """Serve the frontend."""
     return send_from_directory('public', 'index.html')
+
+
+@app.route('/uploads/<path:filename>')
+def serve_upload(filename):
+    """Serve uploaded files from DATA_DIR."""
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 
 @app.route('/api/items', methods=['GET'])
@@ -274,6 +284,5 @@ def verify_mod():
 
 # ===== Main =====
 if __name__ == '__main__':
-    init_db()
     print("\n  🟢 Cork Marketplace running at http://localhost:3000\n")
     app.run(host='0.0.0.0', port=3000, debug=True)
