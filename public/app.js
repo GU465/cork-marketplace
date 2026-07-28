@@ -657,6 +657,53 @@
     imageUploadArea.addEventListener('click', () => itemImageInput.click());
     itemImageInput.addEventListener('change', handleImageSelect);
 
+    // Drag and drop support (workaround for browser isolation)
+    imageUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        imageUploadArea.classList.add('drag-over');
+    });
+    imageUploadArea.addEventListener('dragleave', () => {
+        imageUploadArea.classList.remove('drag-over');
+    });
+    imageUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        imageUploadArea.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                imagePreview.src = ev.target.result;
+                imagePreview.classList.add('visible');
+                uploadPlaceholder.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            showToast('Please drop an image file.');
+        }
+    });
+
+    // Paste from clipboard support (Ctrl+V)
+    document.addEventListener('paste', (e) => {
+        if (!listItemModal.classList.contains('active')) return;
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.startsWith('image/')) {
+                const file = items[i].getAsFile();
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    imagePreview.src = ev.target.result;
+                    imagePreview.classList.add('visible');
+                    uploadPlaceholder.classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+                showToast('Image pasted from clipboard!');
+                break;
+            }
+        }
+    });
+
     closeClaimModal.addEventListener('click', closeClaimModalFn);
     cancelClaim.addEventListener('click', closeClaimModalFn);
     confirmClaim.addEventListener('click', handleConfirmClaim);

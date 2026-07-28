@@ -568,6 +568,12 @@ body {
     background: var(--gray-50);
 }
 
+.image-upload.drag-over {
+    border-color: var(--primary);
+    background: rgba(0, 163, 173, 0.08);
+    border-style: solid;
+}
+
 .upload-placeholder {
     color: var(--gray-600);
 }

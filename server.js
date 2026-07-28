@@ -12,6 +12,23 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const SITE_PASSWORD = process.env.SITE_PASSWORD || 'CorkMarket2026';
+
+// ===== Basic Authentication =====
+app.use((req, res, next) => {
+    const auth = req.headers.authorization;
+    if (!auth || !auth.startsWith('Basic ')) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Cork Marketplace"');
+        return res.status(401).send('Authentication required.');
+    }
+    const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString();
+    const [user, pass] = credentials.split(':');
+    if (pass === SITE_PASSWORD) {
+        return next();
+    }
+    res.setHeader('WWW-Authenticate', 'Basic realm="Cork Marketplace"');
+    return res.status(401).send('Invalid credentials.');
+});
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
