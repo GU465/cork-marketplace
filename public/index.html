@@ -92,7 +92,7 @@
             <div class="modal-body">
                 <form id="listItemForm" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="itemImage">Photo *</label>
+                        <label for="itemImage">Photo (optional)</label>
                         <div class="image-upload" id="imageUploadArea">
                             <input type="file" id="itemImage" accept="image/*" capture="environment" hidden>
                             <div class="upload-placeholder" id="uploadPlaceholder">
@@ -100,6 +100,10 @@
                                 <p>Click, drag & drop, or paste (Ctrl+V) to add a photo</p>
                             </div>
                             <img id="imagePreview" class="image-preview" alt="Preview">
+                        </div>
+                        <div class="image-url-section">
+                            <p class="image-url-divider">— or paste an image URL —</p>
+                            <input type="text" id="itemImageUrl" placeholder="https://example.com/photo.jpg" class="image-url-input">
                         </div>
                     </div>
                     <div class="form-group">

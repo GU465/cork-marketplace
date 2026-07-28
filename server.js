@@ -95,19 +95,41 @@ app.get('/api/items', (req, res) => {
 });
 
 // POST /api/items - Create a new item listing
-app.post('/api/items', upload.single('image'), (req, res) => {
-    const { title, description, category, donation, listed_by } = req.body;
+app.post('/api/items', upload.single('image'), async (req, res) => {
+    const { title, description, category, donation, listed_by, image_url } = req.body;
 
     // Validation
     if (!title || !description || !donation || !listed_by) {
         return res.status(400).json({ error: 'All fields are required.' });
     }
-    if (!req.file) {
-        return res.status(400).json({ error: 'An image is required.' });
-    }
 
     const id = crypto.randomUUID();
-    const image_path = '/uploads/' + req.file.filename;
+    let image_path = '/images/Marketplace Graphic.jpg'; // default placeholder
+
+    if (req.file) {
+        image_path = '/uploads/' + req.file.filename;
+    } else if (image_url) {
+        // Download image from URL
+        try {
+            const urlObj = new URL(image_url);
+            if (!['http:', 'https:'].includes(urlObj.protocol)) {
+                return res.status(400).json({ error: 'Invalid image URL.' });
+            }
+            const response = await fetch(image_url);
+            if (!response.ok) throw new Error('Failed to fetch image');
+            const contentType = response.headers.get('content-type') || '';
+            if (!contentType.startsWith('image/')) {
+                return res.status(400).json({ error: 'URL does not point to an image.' });
+            }
+            const ext = contentType.split('/')[1].split(';')[0] || 'jpg';
+            const filename = crypto.randomUUID() + '.' + ext;
+            const buffer = Buffer.from(await response.arrayBuffer());
+            fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+            image_path = '/uploads/' + filename;
+        } catch (err) {
+            return res.status(400).json({ error: 'Could not download image from URL: ' + err.message });
+        }
+    }
 
     const stmt = db.prepare(`
         INSERT INTO items (id, title, description, category, donation, image_path, listed_by)

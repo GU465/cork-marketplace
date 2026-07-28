@@ -38,6 +38,7 @@
     const itemImageInput = document.getElementById('itemImage');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
     const imagePreview = document.getElementById('imagePreview');
+    const itemImageUrl = document.getElementById('itemImageUrl');
     const itemTitle = document.getElementById('itemTitle');
     const itemDescription = document.getElementById('itemDescription');
     const itemCategory = document.getElementById('itemCategory');
@@ -500,6 +501,7 @@
         imagePreview.classList.remove('visible');
         imagePreview.src = '';
         uploadPlaceholder.classList.remove('hidden');
+        if (itemImageUrl) itemImageUrl.value = '';
     }
 
     function handleImageSelect(e) {
@@ -524,10 +526,10 @@
     }
 
     async function handleSubmitItem() {
+        const imageUrl = itemImageUrl ? itemImageUrl.value.trim() : '';
         // Validate
-        if (!selectedFile) {
-            showToast('Please add a photo of the item.');
-            return;
+        if (!selectedFile && !imageUrl) {
+            // No image is OK - will use placeholder
         }
         if (!itemTitle.value.trim()) {
             showToast('Please enter a title.');
@@ -547,7 +549,12 @@
 
         // Build form data
         const formData = new FormData();
-        formData.append('image', selectedFile);
+        if (selectedFile) {
+            formData.append('image', selectedFile);
+        }
+        if (imageUrl) {
+            formData.append('image_url', imageUrl);
+        }
         formData.append('title', itemTitle.value.trim());
         formData.append('description', itemDescription.value.trim());
         formData.append('category', itemCategory.value);
