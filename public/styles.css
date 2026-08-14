@@ -848,3 +848,80 @@ body {
 @keyframes fadeOut {
     to { opacity: 0; transform: translateX(-50%) translateY(10px); }
 }
+
+/* ===== Footer Disclaimer ===== */
+.site-footer {
+    text-align: center;
+    padding: 32px 20px 24px;
+    margin-top: 40px;
+    border-top: 1px solid var(--gray-300);
+    background: var(--gray-50);
+}
+
+.site-footer .disclaimer {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    max-width: 700px;
+    margin: 0 auto 8px;
+    line-height: 1.5;
+}
+
+.site-footer .footer-links {
+    font-size: 0.75rem;
+    margin-top: 6px;
+}
+
+.site-footer .footer-links a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.site-footer .footer-links a:hover {
+    text-decoration: underline;
+}
+
+/* ===== Terms & Conditions Page ===== */
+.terms-page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 20px;
+}
+
+.terms-page .back-link {
+    display: inline-block;
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
+.terms-page .back-link:hover {
+    text-decoration: underline;
+}
+
+.terms-page h2 {
+    font-size: 1.5rem;
+    color: var(--gray-900);
+    margin-bottom: 24px;
+}
+
+.terms-page h3 {
+    font-size: 1rem;
+    color: var(--gray-800);
+    margin-top: 24px;
+    margin-bottom: 8px;
+}
+
+.terms-page p {
+    font-size: 0.88rem;
+    color: var(--gray-800);
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.terms-page ul {
+    margin: 8px 0 8px 24px;
+    font-size: 0.88rem;
+    color: var(--gray-800);
+    line-height: 1.6;
+}
