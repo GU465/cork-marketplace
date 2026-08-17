@@ -109,6 +109,13 @@
     const submitHelp = document.getElementById('submitHelp');
     const helpBtn = document.getElementById('helpBtn');
 
+    // Messages Modal (Mod)
+    const btnViewMessages = document.getElementById('btnViewMessages');
+    const messagesModal = document.getElementById('messagesModal');
+    const closeMessagesModal = document.getElementById('closeMessagesModal');
+    const closeMessagesBtn = document.getElementById('closeMessagesBtn');
+    const messagesList = document.getElementById('messagesList');
+
     let editingItemId = null;
 
     // ===== API Functions =====
@@ -329,6 +336,7 @@
                 modPassword = password;
                 sessionStorage.setItem(MOD_KEY, password);
                 btnModLogin.classList.add('mod-active');
+                btnViewMessages.style.display = 'inline-block';
                 closeModLoginModalFn();
                 showToast('Moderator access granted. 🔓');
                 renderItems();
@@ -464,6 +472,7 @@
                 if (res.ok) {
                     isMod = true;
                     btnModLogin.classList.add('mod-active');
+                    btnViewMessages.style.display = 'inline-block';
                 }
             } catch (e) {}
         }
@@ -671,6 +680,38 @@
         }
     }
 
+    // ===== View Help Requests (Mod) =====
+    async function openMessagesModal() {
+        messagesModal.classList.add('active');
+        messagesList.innerHTML = '<p class="messages-loading">Loading...</p>';
+        try {
+            const res = await fetch(`${API_BASE}/help`, {
+                headers: { 'X-Mod-Key': modPassword }
+            });
+            if (!res.ok) throw new Error('Failed to load messages');
+            const requests = await res.json();
+            if (requests.length === 0) {
+                messagesList.innerHTML = '<p class="messages-empty">No help requests yet.</p>';
+                return;
+            }
+            messagesList.innerHTML = requests.map(r => `
+                <div class="message-card">
+                    <div class="message-header">
+                        <strong>${escapeHtml(r.name)}</strong>
+                        <span class="message-date">${new Date(r.created_at).toLocaleString()}</span>
+                    </div>
+                    <p class="message-text">${escapeHtml(r.message)}</p>
+                </div>
+            `).join('');
+        } catch (err) {
+            messagesList.innerHTML = '<p class="messages-empty">Error loading messages.</p>';
+        }
+    }
+
+    function closeMessagesModalFn() {
+        messagesModal.classList.remove('active');
+    }
+
     // ===== Utilities =====
     function escapeHtml(str) {
         if (!str) return '';
@@ -814,8 +855,13 @@
     cancelHelp.addEventListener('click', closeHelpModalFn);
     submitHelp.addEventListener('click', handleSubmitHelp);
 
+    // Messages Modal (Mod)
+    btnViewMessages.addEventListener('click', openMessagesModal);
+    closeMessagesModal.addEventListener('click', closeMessagesModalFn);
+    closeMessagesBtn.addEventListener('click', closeMessagesModalFn);
+
     // Close modals on overlay click
-    [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal].forEach(modal => {
+    [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal, messagesModal].forEach(modal => {
         modal.addEventListener('click', e => {
             if (e.target === modal) modal.classList.remove('active');
         });
@@ -824,7 +870,7 @@
     // Close modals on Escape
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
-            [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal].forEach(m => m.classList.remove('active'));
+            [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal, messagesModal].forEach(m => m.classList.remove('active'));
         }
     });
 

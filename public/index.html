@@ -41,6 +41,7 @@
             <span id="userGreeting">Welcome! Please set your name to get started.</span>
             <button class="btn-set-name" id="btnSetName">Set Name</button>
             <button class="btn-mod-login" id="btnModLogin" title="Moderator login">🔑</button>
+            <button class="btn-mod-messages" id="btnViewMessages" title="View help requests" style="display:none;">📩 Messages</button>
         </div>
     </div>
 
@@ -317,6 +318,24 @@
 
     <!-- Help Button -->
     <button class="help-fab" id="helpBtn" title="Contact Admin">?</button>
+
+    <!-- Modal: View Help Requests (Moderator) -->
+    <div class="modal-overlay" id="messagesModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2>📩 Help Requests</h2>
+                <button class="modal-close" id="closeMessagesModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="messagesList" class="messages-list">
+                    <p class="messages-loading">Loading...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeMessagesBtn">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer Disclaimer -->
     <footer class="site-footer">

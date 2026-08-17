@@ -942,6 +942,61 @@ body {
     background: var(--primary-dark);
 }
 
+/* ===== Mod Messages Button ===== */
+.btn-mod-messages {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.btn-mod-messages:hover {
+    background: var(--primary-dark);
+}
+
+/* ===== Messages List ===== */
+.messages-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.messages-loading,
+.messages-empty {
+    text-align: center;
+    color: var(--gray-600);
+    padding: 24px 0;
+}
+
+.message-card {
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-bottom: 10px;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.message-date {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+}
+
+.message-text {
+    font-size: 0.88rem;
+    color: var(--gray-800);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
 /* ===== Terms & Conditions Page ===== */
 .terms-page {
     max-width: 760px;
