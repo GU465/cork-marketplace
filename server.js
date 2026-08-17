@@ -12,6 +12,7 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const MODERATOR_PASSWORD = process.env.MOD_PASSWORD || 'CorkAdmin2026!';
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
@@ -159,10 +160,13 @@ app.patch('/api/items/:id/claim', (req, res) => {
     res.json(updated);
 });
 
-// DELETE /api/items/:id - Remove an item (only by lister)
+// DELETE /api/items/:id - Remove an item (moderator only)
 app.delete('/api/items/:id', (req, res) => {
     const { id } = req.params;
-    const { user } = req.body;
+    const modKey = req.headers['x-mod-key'] || '';
+    if (modKey !== MODERATOR_PASSWORD) {
+        return res.status(403).json({ error: 'Unauthorized. Moderator access required.' });
+    }
 
     const item = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
     if (!item) {
@@ -177,6 +181,56 @@ app.delete('/api/items/:id', (req, res) => {
 
     db.prepare('DELETE FROM items WHERE id = ?').run(id);
     res.json({ success: true });
+});
+
+// PATCH /api/items/:id - Edit an item (moderator only)
+app.patch('/api/items/:id', (req, res) => {
+    const { id } = req.params;
+    const modKey = req.headers['x-mod-key'] || '';
+    if (modKey !== MODERATOR_PASSWORD) {
+        return res.status(403).json({ error: 'Unauthorized. Moderator access required.' });
+    }
+
+    const item = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
+    if (!item) {
+        return res.status(404).json({ error: 'Item not found.' });
+    }
+
+    const data = req.body;
+    const title = (data.title || item.title).trim();
+    const description = (data.description || item.description).trim();
+    const category = (data.category || item.category).trim();
+    const donation = Number(data.donation ?? item.donation);
+    const claimed = data.claimed !== undefined ? Number(data.claimed) : item.claimed;
+    const claimed_by = claimed ? item.claimed_by : null;
+    const claimed_at = claimed ? item.claimed_at : null;
+
+    db.prepare(`
+        UPDATE items SET title = ?, description = ?, category = ?, donation = ?,
+                         claimed = ?, claimed_by = ?, claimed_at = ? WHERE id = ?
+    `).run(title, description, category, donation, claimed, claimed_by, claimed_at, id);
+
+    const updated = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
+    res.json(updated);
+});
+
+// POST /api/mod/verify - Verify moderator password
+app.post('/api/mod/verify', (req, res) => {
+    const { password } = req.body || {};
+    if (password === MODERATOR_PASSWORD) {
+        return res.json({ success: true });
+    }
+    res.status(401).json({ error: 'Invalid password.' });
+});
+
+// GET /api/help - Get help requests (moderator only)
+app.get('/api/help', (req, res) => {
+    const modKey = req.headers['x-mod-key'] || '';
+    if (modKey !== MODERATOR_PASSWORD) {
+        return res.status(403).json({ error: 'Unauthorized.' });
+    }
+    const rows = db.prepare('SELECT * FROM help_requests ORDER BY created_at DESC').all();
+    res.json(rows);
 });
 
 // POST /api/help - Submit a help request
