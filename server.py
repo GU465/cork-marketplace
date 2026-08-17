@@ -113,16 +113,16 @@ def get_items():
 @app.route('/api/items', methods=['POST'])
 def create_item():
     """Create a new item listing."""
+    image_path = '/images/Marketplace Graphic.jpg'
+
     # Check for image file
-    if 'image' not in request.files:
-        return jsonify({'error': 'An image is required.'}), 400
-
-    file = request.files['image']
-    if file.filename == '':
-        return jsonify({'error': 'No image selected.'}), 400
-
-    if not allowed_file(file.filename):
-        return jsonify({'error': 'Only image files (jpg, png, gif, webp) are allowed.'}), 400
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename != '' and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            image_path = f"/uploads/{filename}"
 
     # Get form fields
     title = request.form.get('title', '').strip()
@@ -147,12 +147,6 @@ def create_item():
             raise ValueError()
     except ValueError:
         return jsonify({'error': 'Invalid donation amount.'}), 400
-
-    # Save image
-    ext = file.filename.rsplit('.', 1)[1].lower()
-    filename = f"{uuid.uuid4().hex}.{ext}"
-    file.save(os.path.join(UPLOAD_FOLDER, filename))
-    image_path = f"/uploads/{filename}"
 
     # Save to database
     item_id = str(uuid.uuid4())
