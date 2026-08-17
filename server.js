@@ -12,23 +12,6 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const SITE_PASSWORD = process.env.SITE_PASSWORD || 'CorkMarket2026';
-
-// ===== Basic Authentication =====
-app.use((req, res, next) => {
-    const auth = req.headers.authorization;
-    if (!auth || !auth.startsWith('Basic ')) {
-        res.setHeader('WWW-Authenticate', 'Basic realm="Cork Marketplace"');
-        return res.status(401).send('Authentication required.');
-    }
-    const credentials = Buffer.from(auth.split(' ')[1], 'base64').toString();
-    const [user, pass] = credentials.split(':');
-    if (pass === SITE_PASSWORD) {
-        return next();
-    }
-    res.setHeader('WWW-Authenticate', 'Basic realm="Cork Marketplace"');
-    return res.status(401).send('Invalid credentials.');
-});
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
@@ -52,6 +35,15 @@ db.exec(`
         claimed INTEGER NOT NULL DEFAULT 0,
         claimed_by TEXT,
         claimed_at TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+`);
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS help_requests (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        message TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
 `);
@@ -185,6 +177,47 @@ app.delete('/api/items/:id', (req, res) => {
 
     db.prepare('DELETE FROM items WHERE id = ?').run(id);
     res.json({ success: true });
+});
+
+// POST /api/help - Submit a help request
+app.post('/api/help', (req, res) => {
+    const { name, message } = req.body;
+    if (!name || !message) {
+        return res.status(400).json({ error: 'Name and message are required.' });
+    }
+    if (message.length > 1000) {
+        return res.status(400).json({ error: 'Message too long.' });
+    }
+
+    const id = crypto.randomUUID();
+    db.prepare(
+        'INSERT INTO help_requests (id, name, message) VALUES (?, ?, ?)'
+    ).run(id, name.trim(), message.trim());
+
+    // Send email notification (if nodemailer is available)
+    try {
+        const nodemailer = require('nodemailer');
+        const smtpHost = process.env.SMTP_HOST;
+        const smtpUser = process.env.SMTP_USER;
+        const smtpPass = process.env.SMTP_PASS;
+        if (smtpHost && smtpUser && smtpPass) {
+            const transporter = nodemailer.createTransport({
+                host: smtpHost,
+                port: parseInt(process.env.SMTP_PORT || '587'),
+                secure: false,
+                auth: { user: smtpUser, pass: smtpPass }
+            });
+            const adminEmails = (process.env.ADMIN_EMAILS || 'denise.osullivan@clearstream.com').split(',');
+            transporter.sendMail({
+                from: process.env.SMTP_FROM || smtpUser,
+                to: adminEmails.join(', '),
+                subject: `Cork Marketplace Help Request from ${name.trim()}`,
+                text: `Help request from ${name.trim()}:\n\n${message.trim()}`
+            }).catch(() => {});
+        }
+    } catch (_) {}
+
+    res.status(201).json({ success: true });
 });
 
 // ===== Error handling for multer =====

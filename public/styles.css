@@ -880,6 +880,68 @@ body {
     text-decoration: underline;
 }
 
+/* ===== Donation Modal ===== */
+.donation-body {
+    text-align: center;
+}
+
+.donation-body > p:first-child {
+    font-size: 1rem;
+    margin-bottom: 16px;
+    color: var(--gray-800);
+}
+
+.donation-link {
+    display: inline-block;
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+    text-decoration: none;
+}
+
+.donation-link:hover {
+    text-decoration: underline;
+}
+
+.donation-qr {
+    display: block;
+    margin: 0 auto 16px;
+    max-width: 180px;
+    border-radius: var(--radius);
+}
+
+.donation-disclaimer {
+    font-size: 0.72rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* ===== Help Button ===== */
+.help-fab {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    font-size: 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    z-index: 999;
+    transition: background 0.2s;
+}
+
+.help-fab:hover {
+    background: var(--primary-dark);
+}
+
 /* ===== Terms & Conditions Page ===== */
 .terms-page {
     max-width: 760px;

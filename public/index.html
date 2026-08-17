@@ -271,6 +271,53 @@
         </div>
     </div>
 
+    <!-- Modal: Donation Info (after claim) -->
+    <div class="modal-overlay" id="donationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Thank You! 🎉</h2>
+                <button class="modal-close" id="closeDonationModal">&times;</button>
+            </div>
+            <div class="modal-body donation-body">
+                <p>Make your donation to the charity fund via the iDonate link or using the QR code*</p>
+                <a href="https://www.idonate.ie/fundraiser/corkclearstreamdbgcharity5" target="_blank" rel="noopener noreferrer" class="donation-link">Support Clearstream Marketplace Donations 2026 on iDonate.ie</a>
+                <img src="images/idonate-qr.png" alt="Donate via QR Code" class="donation-qr">
+                <p class="donation-disclaimer">*This platform operates on trust and good faith. Donations may be made at your convenience, and the status of a claimed item will not be affected if a donation is not made immediately.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="closeDonationBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Help Request -->
+    <div class="modal-overlay" id="helpModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Contact Admin</h2>
+                <button class="modal-close" id="closeHelpModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Need help? Made a mistake claiming an item or listing? Send a message to the site admin.</p>
+                <div class="form-group">
+                    <label for="helpName">Your Name *</label>
+                    <input type="text" id="helpName" placeholder="e.g. John Smith" maxlength="50" required>
+                </div>
+                <div class="form-group">
+                    <label for="helpMessage">Message *</label>
+                    <textarea id="helpMessage" placeholder="Describe your issue..." rows="4" maxlength="1000" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelHelp">Cancel</button>
+                <button class="btn btn-primary" id="submitHelp">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Button -->
+    <button class="help-fab" id="helpBtn" title="Contact Admin">?</button>
+
     <!-- Footer Disclaimer -->
     <footer class="site-footer">
         <p class="disclaimer">Please remember that this platform operates on a basis of trust, goodwill, and common sense. Colleagues exchange items and arrange collections directly with one another. The platform does not verify listings, handle donations, or assume responsibility for any items exchanged.</p>

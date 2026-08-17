@@ -58,6 +58,14 @@ def init_db():
             created_at TEXT NOT NULL
         )
     ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS help_requests (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            message TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -280,6 +288,83 @@ def verify_mod():
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Invalid password.'}), 401
+
+
+ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', 'denise.osullivan@clearstream.com').split(',')
+
+
+@app.route('/api/help', methods=['POST'])
+def submit_help():
+    """Submit a help request."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided.'}), 400
+
+    name = (data.get('name') or '').strip()
+    message = (data.get('message') or '').strip()
+
+    if not name or not message:
+        return jsonify({'error': 'Name and message are required.'}), 400
+    if len(message) > 1000:
+        return jsonify({'error': 'Message too long.'}), 400
+
+    req_id = str(uuid.uuid4())
+    created_at = datetime.utcnow().isoformat() + 'Z'
+
+    conn = get_db()
+    conn.execute(
+        'INSERT INTO help_requests (id, name, message, created_at) VALUES (?, ?, ?, ?)',
+        (req_id, name, message, created_at)
+    )
+    conn.commit()
+    conn.close()
+
+    # Send email notification
+    try:
+        _send_help_email(name, message, created_at)
+    except Exception:
+        pass
+
+    return jsonify({'success': True}), 201
+
+
+@app.route('/api/help', methods=['GET'])
+def get_help_requests():
+    """Get help requests (moderator only)."""
+    mod_key = request.headers.get('X-Mod-Key', '')
+    if not hmac.compare_digest(mod_key, MODERATOR_PASSWORD):
+        return jsonify({'error': 'Unauthorized.'}), 403
+
+    conn = get_db()
+    rows = conn.execute('SELECT * FROM help_requests ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return jsonify([row_to_dict(r) for r in rows])
+
+
+def _send_help_email(name, message, timestamp):
+    """Send email notification for a help request."""
+    import smtplib
+    from email.mime.text import MIMEText
+
+    smtp_host = os.environ.get('SMTP_HOST')
+    smtp_port = int(os.environ.get('SMTP_PORT', '587'))
+    smtp_user = os.environ.get('SMTP_USER')
+    smtp_pass = os.environ.get('SMTP_PASS')
+    smtp_from = os.environ.get('SMTP_FROM', smtp_user)
+
+    if not smtp_host or not smtp_user or not smtp_pass:
+        return
+
+    body = f"Help request from {name} at {timestamp}:\n\n{message}"
+    msg = MIMEText(body)
+    msg['Subject'] = f'Cork Marketplace Help Request from {name}'
+    msg['From'] = smtp_from
+    msg['To'] = ', '.join(ADMIN_EMAILS)
+
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.starttls()
+        server.login(smtp_user, smtp_pass)
+        server.send_message(msg)
 
 
 # ===== Main =====

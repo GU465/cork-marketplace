@@ -95,6 +95,20 @@
     const cancelDelete = document.getElementById('cancelDelete');
     const confirmDelete = document.getElementById('confirmDelete');
 
+    // Donation Modal
+    const donationModal = document.getElementById('donationModal');
+    const closeDonationModal = document.getElementById('closeDonationModal');
+    const closeDonationBtn = document.getElementById('closeDonationBtn');
+
+    // Help Modal
+    const helpModal = document.getElementById('helpModal');
+    const closeHelpModal = document.getElementById('closeHelpModal');
+    const helpName = document.getElementById('helpName');
+    const helpMessage = document.getElementById('helpMessage');
+    const cancelHelp = document.getElementById('cancelHelp');
+    const submitHelp = document.getElementById('submitHelp');
+    const helpBtn = document.getElementById('helpBtn');
+
     let editingItemId = null;
 
     // ===== API Functions =====
@@ -605,12 +619,55 @@
             await claimItem(pendingClaimId, currentUser);
             closeClaimModalFn();
             await renderItems();
-            showToast('Item claimed! Please arrange collection and donation. 🤝');
+            donationModal.classList.add('active');
         } catch (err) {
             showToast(err.message);
         } finally {
             confirmClaim.disabled = false;
             confirmClaim.textContent = 'Confirm Claim';
+        }
+    }
+
+    // ===== Donation Modal =====
+    function closeDonationModalFn() {
+        donationModal.classList.remove('active');
+    }
+
+    // ===== Help Request =====
+    function openHelpModal() {
+        helpName.value = currentUser || '';
+        helpMessage.value = '';
+        helpModal.classList.add('active');
+    }
+
+    function closeHelpModalFn() {
+        helpModal.classList.remove('active');
+    }
+
+    async function handleSubmitHelp() {
+        const name = helpName.value.trim();
+        const message = helpMessage.value.trim();
+        if (!name || !message) {
+            showToast('Please fill in your name and message.');
+            return;
+        }
+        submitHelp.disabled = true;
+        submitHelp.textContent = 'Sending...';
+        try {
+            const res = await fetch(`${API_BASE}/help`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, message })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to send message');
+            closeHelpModalFn();
+            showToast('Message sent to admin. Thank you! 📩');
+        } catch (err) {
+            showToast(err.message);
+        } finally {
+            submitHelp.disabled = false;
+            submitHelp.textContent = 'Send Message';
         }
     }
 
@@ -747,8 +804,18 @@
     cancelDelete.addEventListener('click', closeDeleteConfirmFn);
     confirmDelete.addEventListener('click', handleDeleteItem);
 
+    // Donation Modal
+    closeDonationModal.addEventListener('click', closeDonationModalFn);
+    closeDonationBtn.addEventListener('click', closeDonationModalFn);
+
+    // Help Modal
+    helpBtn.addEventListener('click', openHelpModal);
+    closeHelpModal.addEventListener('click', closeHelpModalFn);
+    cancelHelp.addEventListener('click', closeHelpModalFn);
+    submitHelp.addEventListener('click', handleSubmitHelp);
+
     // Close modals on overlay click
-    [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal].forEach(modal => {
+    [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal].forEach(modal => {
         modal.addEventListener('click', e => {
             if (e.target === modal) modal.classList.remove('active');
         });
@@ -757,7 +824,7 @@
     // Close modals on Escape
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
-            [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal].forEach(m => m.classList.remove('active'));
+            [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal].forEach(m => m.classList.remove('active'));
         }
     });
 
