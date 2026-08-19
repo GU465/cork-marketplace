@@ -66,6 +66,16 @@ def init_db():
             created_at TEXT NOT NULL
         )
     ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_id TEXT NOT NULL,
+            action TEXT NOT NULL,
+            details TEXT,
+            performed_by TEXT,
+            created_at TEXT NOT NULL
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -85,6 +95,13 @@ def row_to_dict(row):
 
 # Initialize database on module load (required for gunicorn)
 init_db()
+
+
+def log_audit(conn, item_id, action, details, performed_by):
+    conn.execute(
+        'INSERT INTO audit_log (item_id, action, details, performed_by, created_at) VALUES (?, ?, ?, ?, ?)',
+        (item_id, action, details, performed_by, datetime.utcnow().isoformat() + 'Z')
+    )
 
 
 # ===== Routes =====
@@ -157,6 +174,7 @@ def create_item():
         INSERT INTO items (id, title, description, category, donation, image_path, listed_by, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     ''', (item_id, title, description, category, donation_amount, image_path, listed_by, created_at))
+    log_audit(conn, item_id, 'listed', f'{title} — €{donation_amount:.2f}', listed_by)
     conn.commit()
 
     row = conn.execute('SELECT * FROM items WHERE id = ?', (item_id,)).fetchone()
@@ -189,6 +207,7 @@ def claim_item(item_id):
     conn.execute('''
         UPDATE items SET claimed = 1, claimed_by = ?, claimed_at = ? WHERE id = ?
     ''', (claimed_by, claimed_at, item_id))
+    log_audit(conn, item_id, 'claimed', f'Claimed by {claimed_by}', claimed_by)
     conn.commit()
 
     updated = conn.execute('SELECT * FROM items WHERE id = ?', (item_id,)).fetchone()
@@ -218,6 +237,7 @@ def delete_item(item_id):
             os.remove(image_file)
 
     conn.execute('DELETE FROM items WHERE id = ?', (item_id,))
+    log_audit(conn, item_id, 'deleted', f'Deleted: {row["title"]}', 'moderator')
     conn.commit()
     conn.close()
 
@@ -264,6 +284,17 @@ def edit_item(item_id):
                          claimed = ?, claimed_by = ?, claimed_at = ?
         WHERE id = ?
     ''', (title, description, category, donation, int(claimed), claimed_by, claimed_at, item_id))
+
+    changes = []
+    if title != row['title']:
+        changes.append(f'title: {row["title"]} → {title}')
+    if description != row['description']:
+        changes.append('description updated')
+    if donation != row['donation']:
+        changes.append(f'donation: €{row["donation"]:.2f} → €{donation:.2f}')
+    if int(claimed) != row['claimed']:
+        changes.append('unclaimed' if not int(claimed) else 'claimed')
+    log_audit(conn, item_id, 'edited', '; '.join(changes) or 'no changes', 'moderator')
     conn.commit()
 
     updated = conn.execute('SELECT * FROM items WHERE id = ?', (item_id,)).fetchone()
@@ -282,6 +313,19 @@ def verify_mod():
         return jsonify({'success': True})
     else:
         return jsonify({'error': 'Invalid password.'}), 401
+
+
+@app.route('/api/audit', methods=['GET'])
+def get_audit_log():
+    """Get audit log (moderator only)."""
+    mod_key = request.headers.get('X-Mod-Key', '')
+    if not hmac.compare_digest(mod_key, MODERATOR_PASSWORD):
+        return jsonify({'error': 'Unauthorized.'}), 403
+
+    conn = get_db()
+    rows = conn.execute('SELECT * FROM audit_log ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return jsonify([row_to_dict(r) for r in rows])
 
 
 ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', 'denise.osullivan@clearstream.com').split(',')

@@ -49,6 +49,22 @@ db.exec(`
     )
 `);
 
+db.exec(`
+    CREATE TABLE IF NOT EXISTS audit_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_id TEXT NOT NULL,
+        action TEXT NOT NULL,
+        details TEXT,
+        performed_by TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+`);
+
+function logAudit(itemId, action, details, performedBy) {
+    db.prepare('INSERT INTO audit_log (item_id, action, details, performed_by) VALUES (?, ?, ?, ?)')
+        .run(itemId, action, details, performedBy);
+}
+
 // ===== Middleware =====
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -130,6 +146,7 @@ app.post('/api/items', upload.single('image'), async (req, res) => {
     `);
 
     stmt.run(id, title.trim(), description.trim(), category || 'other', Number(donation), image_path, listed_by.trim());
+    logAudit(id, 'listed', `${title.trim()} — €${Number(donation).toFixed(2)}`, listed_by.trim());
 
     const item = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
     res.status(201).json(item);
@@ -155,6 +172,7 @@ app.patch('/api/items/:id/claim', (req, res) => {
     db.prepare(`
         UPDATE items SET claimed = 1, claimed_by = ?, claimed_at = datetime('now') WHERE id = ?
     `).run(claimed_by.trim(), id);
+    logAudit(id, 'claimed', `Claimed by ${claimed_by.trim()}`, claimed_by.trim());
 
     const updated = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
     res.json(updated);
@@ -179,6 +197,7 @@ app.delete('/api/items/:id', (req, res) => {
         fs.unlinkSync(imagePath);
     }
 
+    logAudit(id, 'deleted', `Deleted: ${item.title}`, 'moderator');
     db.prepare('DELETE FROM items WHERE id = ?').run(id);
     res.json({ success: true });
 });
@@ -210,6 +229,13 @@ app.patch('/api/items/:id', (req, res) => {
                          claimed = ?, claimed_by = ?, claimed_at = ? WHERE id = ?
     `).run(title, description, category, donation, claimed, claimed_by, claimed_at, id);
 
+    const changes = [];
+    if (title !== item.title) changes.push(`title: ${item.title} → ${title}`);
+    if (description !== item.description) changes.push('description updated');
+    if (donation !== item.donation) changes.push(`donation: €${item.donation.toFixed(2)} → €${donation.toFixed(2)}`);
+    if (claimed !== item.claimed) changes.push(claimed ? 'claimed' : 'unclaimed');
+    logAudit(id, 'edited', changes.join('; ') || 'no changes', 'moderator');
+
     const updated = db.prepare('SELECT * FROM items WHERE id = ?').get(id);
     res.json(updated);
 });
@@ -221,6 +247,16 @@ app.post('/api/mod/verify', (req, res) => {
         return res.json({ success: true });
     }
     res.status(401).json({ error: 'Invalid password.' });
+});
+
+// GET /api/audit - Get audit log (moderator only)
+app.get('/api/audit', (req, res) => {
+    const modKey = req.headers['x-mod-key'] || '';
+    if (modKey !== MODERATOR_PASSWORD) {
+        return res.status(403).json({ error: 'Unauthorized.' });
+    }
+    const rows = db.prepare('SELECT * FROM audit_log ORDER BY created_at DESC').all();
+    res.json(rows);
 });
 
 // GET /api/help - Get help requests (moderator only)

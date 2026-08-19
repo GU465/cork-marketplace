@@ -116,6 +116,13 @@
     const closeMessagesBtn = document.getElementById('closeMessagesBtn');
     const messagesList = document.getElementById('messagesList');
 
+    // Audit Log Modal (Mod)
+    const btnViewAudit = document.getElementById('btnViewAudit');
+    const auditModal = document.getElementById('auditModal');
+    const closeAuditModal = document.getElementById('closeAuditModal');
+    const closeAuditBtn = document.getElementById('closeAuditBtn');
+    const auditList = document.getElementById('auditList');
+
     let editingItemId = null;
 
     // ===== API Functions =====
@@ -337,6 +344,7 @@
                 sessionStorage.setItem(MOD_KEY, password);
                 btnModLogin.classList.add('mod-active');
                 btnViewMessages.style.display = 'inline-block';
+                btnViewAudit.style.display = 'inline-block';
                 closeModLoginModalFn();
                 showToast('Moderator access granted. 🔓');
                 renderItems();
@@ -473,6 +481,7 @@
                     isMod = true;
                     btnModLogin.classList.add('mod-active');
                     btnViewMessages.style.display = 'inline-block';
+                    btnViewAudit.style.display = 'inline-block';
                 }
             } catch (e) {}
         }
@@ -712,6 +721,42 @@
         messagesModal.classList.remove('active');
     }
 
+    // ===== Audit Log (Mod) =====
+    async function openAuditModal() {
+        auditModal.classList.add('active');
+        auditList.innerHTML = '<p class="messages-loading">Loading...</p>';
+        try {
+            const res = await fetch(`${API_BASE}/audit`, {
+                headers: { 'X-Mod-Key': modPassword }
+            });
+            if (!res.ok) throw new Error('Failed to load audit log');
+            const entries = await res.json();
+            if (entries.length === 0) {
+                auditList.innerHTML = '<p class="messages-empty">No activity recorded yet.</p>';
+                return;
+            }
+            auditList.innerHTML = entries.map(e => {
+                const actionLabel = {listed: '🆕 Listed', claimed: '✅ Claimed', edited: '✏️ Edited', deleted: '🗑️ Deleted'}[e.action] || e.action;
+                return `
+                    <div class="message-card">
+                        <div class="message-header">
+                            <strong>${actionLabel}</strong>
+                            <span class="message-date">${new Date(e.created_at).toLocaleString()}</span>
+                        </div>
+                        <p class="message-text">${escapeHtml(e.details || '')}</p>
+                        <span class="audit-by">by ${escapeHtml(e.performed_by || '—')}</span>
+                    </div>
+                `;
+            }).join('');
+        } catch (err) {
+            auditList.innerHTML = '<p class="messages-empty">Error loading audit log.</p>';
+        }
+    }
+
+    function closeAuditModalFn() {
+        auditModal.classList.remove('active');
+    }
+
     // ===== Utilities =====
     function escapeHtml(str) {
         if (!str) return '';
@@ -860,8 +905,13 @@
     closeMessagesModal.addEventListener('click', closeMessagesModalFn);
     closeMessagesBtn.addEventListener('click', closeMessagesModalFn);
 
+    // Audit Log Modal (Mod)
+    btnViewAudit.addEventListener('click', openAuditModal);
+    closeAuditModal.addEventListener('click', closeAuditModalFn);
+    closeAuditBtn.addEventListener('click', closeAuditModalFn);
+
     // Close modals on overlay click
-    [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal, messagesModal].forEach(modal => {
+    [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal, messagesModal, auditModal].forEach(modal => {
         modal.addEventListener('click', e => {
             if (e.target === modal) modal.classList.remove('active');
         });
@@ -870,7 +920,7 @@
     // Close modals on Escape
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
-            [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal, messagesModal].forEach(m => m.classList.remove('active'));
+            [nameModal, listItemModal, claimModal, detailModal, modLoginModal, editItemModal, deleteConfirmModal, donationModal, helpModal, messagesModal, auditModal].forEach(m => m.classList.remove('active'));
         }
     });
 

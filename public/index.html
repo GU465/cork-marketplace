@@ -42,6 +42,7 @@
             <button class="btn-set-name" id="btnSetName">Set Name</button>
             <button class="btn-mod-login" id="btnModLogin" title="Moderator login">🔑</button>
             <button class="btn-mod-messages" id="btnViewMessages" title="View help requests" style="display:none;">📩 Messages</button>
+            <button class="btn-mod-messages" id="btnViewAudit" title="View activity log" style="display:none;">📋 Activity Log</button>
         </div>
     </div>
 
@@ -333,6 +334,24 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="closeMessagesBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Audit Log (Moderator) -->
+    <div class="modal-overlay" id="auditModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2>📋 Activity Log</h2>
+                <button class="modal-close" id="closeAuditModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="auditList" class="messages-list">
+                    <p class="messages-loading">Loading...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeAuditBtn">Close</button>
             </div>
         </div>
     </div>

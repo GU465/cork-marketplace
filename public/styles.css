@@ -997,6 +997,12 @@ body {
     white-space: pre-wrap;
 }
 
+.audit-by {
+    font-size: 0.75rem;
+    color: var(--gray-600);
+    font-style: italic;
+}
+
 /* ===== Terms & Conditions Page ===== */
 .terms-page {
     max-width: 760px;
