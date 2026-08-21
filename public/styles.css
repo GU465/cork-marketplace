@@ -79,6 +79,34 @@ body {
     margin-top: 4px;
 }
 
+/* ===== Page Navigation ===== */
+.page-nav {
+    max-width: 1200px;
+    margin: 12px auto 0;
+    display: flex;
+    gap: 4px;
+}
+
+.nav-link {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    padding: 8px 18px;
+    border-radius: 6px 6px 0 0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s;
+}
+
+.nav-link:hover {
+    background: rgba(255,255,255,0.15);
+    color: var(--white);
+}
+
+.nav-link.active {
+    background: var(--gray-100);
+    color: var(--gray-900);
+}
+
 /* ===== Mission Banner ===== */
 .mission-banner {
     background: var(--white);

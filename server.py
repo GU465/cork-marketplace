@@ -76,6 +76,21 @@ def init_db():
             created_at TEXT NOT NULL
         )
     ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS iso_items (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            category TEXT NOT NULL DEFAULT 'other',
+            donation REAL NOT NULL,
+            image_path TEXT NOT NULL,
+            listed_by TEXT NOT NULL,
+            claimed INTEGER NOT NULL DEFAULT 0,
+            claimed_by TEXT,
+            claimed_at TEXT,
+            created_at TEXT NOT NULL
+        )
+    ''')
     conn.commit()
     conn.close()
 
@@ -110,6 +125,16 @@ def log_audit(conn, item_id, action, details, performed_by):
 def index():
     """Serve the frontend."""
     return send_from_directory('public', 'index.html')
+
+
+@app.route('/iso.html')
+def iso_page():
+    return send_from_directory('public', 'iso.html')
+
+
+@app.route('/terms.html')
+def terms_page():
+    return send_from_directory('public', 'terms.html')
 
 
 @app.route('/uploads/<path:filename>')
@@ -300,6 +325,113 @@ def edit_item(item_id):
     updated = conn.execute('SELECT * FROM items WHERE id = ?', (item_id,)).fetchone()
     conn.close()
 
+    return jsonify(row_to_dict(updated))
+
+
+# ===== ISO (In Search Of) Routes =====
+
+@app.route('/api/iso', methods=['GET'])
+def get_iso_items():
+    conn = get_db()
+    rows = conn.execute('SELECT * FROM iso_items ORDER BY created_at DESC').fetchall()
+    conn.close()
+    return jsonify([row_to_dict(r) for r in rows])
+
+
+@app.route('/api/iso', methods=['POST'])
+def create_iso_item():
+    image_path = '/images/Marketplace Graphic.jpg'
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename != '' and allowed_file(file.filename):
+            ext = file.filename.rsplit('.', 1)[1].lower()
+            filename = f"{uuid.uuid4().hex}.{ext}"
+            file.save(os.path.join(UPLOAD_FOLDER, filename))
+            image_path = f"/uploads/{filename}"
+
+    title = request.form.get('title', '').strip()
+    description = request.form.get('description', '').strip()
+    category = request.form.get('category', 'other').strip()
+    donation = request.form.get('donation', '').strip()
+    listed_by = request.form.get('listed_by', '').strip()
+
+    if not title or not description or not donation or not listed_by:
+        return jsonify({'error': 'All fields are required.'}), 400
+    try:
+        donation_amount = float(donation)
+        if donation_amount < 0: raise ValueError()
+    except ValueError:
+        return jsonify({'error': 'Invalid donation amount.'}), 400
+
+    item_id = str(uuid.uuid4())
+    created_at = datetime.utcnow().isoformat() + 'Z'
+    conn = get_db()
+    conn.execute('INSERT INTO iso_items (id, title, description, category, donation, image_path, listed_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        (item_id, title, description, category, donation_amount, image_path, listed_by, created_at))
+    log_audit(conn, item_id, 'listed', f'[ISO] {title} — €{donation_amount:.2f}', listed_by)
+    conn.commit()
+    row = conn.execute('SELECT * FROM iso_items WHERE id = ?', (item_id,)).fetchone()
+    conn.close()
+    return jsonify(row_to_dict(row)), 201
+
+
+@app.route('/api/iso/<item_id>/offer', methods=['PATCH'])
+def offer_iso_item(item_id):
+    data = request.get_json()
+    if not data or not data.get('offered_by', '').strip():
+        return jsonify({'error': 'Your name is required.'}), 400
+    offered_by = data['offered_by'].strip()
+    conn = get_db()
+    row = conn.execute('SELECT * FROM iso_items WHERE id = ?', (item_id,)).fetchone()
+    if row is None: conn.close(); return jsonify({'error': 'Request not found.'}), 404
+    if row['claimed']: conn.close(); return jsonify({'error': 'Already offered.'}), 409
+    claimed_at = datetime.utcnow().isoformat() + 'Z'
+    conn.execute('UPDATE iso_items SET claimed = 1, claimed_by = ?, claimed_at = ? WHERE id = ?', (offered_by, claimed_at, item_id))
+    log_audit(conn, item_id, 'claimed', f'[ISO] Offered by {offered_by}', offered_by)
+    conn.commit()
+    updated = conn.execute('SELECT * FROM iso_items WHERE id = ?', (item_id,)).fetchone()
+    conn.close()
+    return jsonify(row_to_dict(updated))
+
+
+@app.route('/api/iso/<item_id>', methods=['DELETE'])
+def delete_iso_item(item_id):
+    mod_key = request.headers.get('X-Mod-Key', '')
+    if not hmac.compare_digest(mod_key, MODERATOR_PASSWORD):
+        return jsonify({'error': 'Unauthorized.'}), 403
+    conn = get_db()
+    row = conn.execute('SELECT * FROM iso_items WHERE id = ?', (item_id,)).fetchone()
+    if row is None: conn.close(); return jsonify({'error': 'Not found.'}), 404
+    conn.execute('DELETE FROM iso_items WHERE id = ?', (item_id,))
+    log_audit(conn, item_id, 'deleted', f'[ISO] Deleted: {row["title"]}', 'moderator')
+    conn.commit()
+    conn.close()
+    return jsonify({'success': True})
+
+
+@app.route('/api/iso/<item_id>', methods=['PATCH'])
+def edit_iso_item(item_id):
+    mod_key = request.headers.get('X-Mod-Key', '')
+    if not hmac.compare_digest(mod_key, MODERATOR_PASSWORD):
+        return jsonify({'error': 'Unauthorized.'}), 403
+    data = request.get_json()
+    if not data: return jsonify({'error': 'No data.'}), 400
+    conn = get_db()
+    row = conn.execute('SELECT * FROM iso_items WHERE id = ?', (item_id,)).fetchone()
+    if row is None: conn.close(); return jsonify({'error': 'Not found.'}), 404
+    title = data.get('title', row['title']).strip()
+    description = data.get('description', row['description']).strip()
+    category = data.get('category', row['category']).strip()
+    donation = float(data.get('donation', row['donation']))
+    claimed = data.get('claimed', row['claimed'])
+    claimed_by = row['claimed_by'] if claimed else None
+    claimed_at = row['claimed_at'] if claimed else None
+    conn.execute('UPDATE iso_items SET title=?, description=?, category=?, donation=?, claimed=?, claimed_by=?, claimed_at=? WHERE id=?',
+        (title, description, category, donation, int(claimed), claimed_by, claimed_at, item_id))
+    log_audit(conn, item_id, 'edited', f'[ISO] {title}', 'moderator')
+    conn.commit()
+    updated = conn.execute('SELECT * FROM iso_items WHERE id = ?', (item_id,)).fetchone()
+    conn.close()
     return jsonify(row_to_dict(updated))
 
 

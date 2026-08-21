@@ -1,0 +1,81 @@
+/* ===== ISO Page Colour Overrides ===== */
+.iso-page {
+    --clearstream-teal: #5c6bc0;
+    --clearstream-dark: #3949ab;
+    --primary: #5c6bc0;
+    --primary-light: #7986cb;
+    --primary-dark: #3949ab;
+}
+
+.iso-page .app-header {
+    background: #5c6bc0;
+}
+
+.iso-page .mission-banner {
+    background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+}
+
+.iso-page .user-banner {
+    background: #e8eaf6;
+    border-bottom-color: #c5cae9;
+}
+
+.iso-page .fab {
+    background: #5c6bc0;
+}
+
+.iso-page .fab:hover {
+    background: #3949ab;
+}
+
+.iso-page .help-fab {
+    background: #5c6bc0;
+}
+
+.iso-page .help-fab:hover {
+    background: #3949ab;
+}
+
+.iso-page .btn-claim {
+    background: #5c6bc0;
+}
+
+.iso-page .btn-claim:hover {
+    background: #3949ab;
+}
+
+.iso-page .btn-primary {
+    background: #5c6bc0;
+}
+
+.iso-page .btn-primary:hover {
+    background: #3949ab;
+}
+
+.iso-page .nav-link.active {
+    color: #3949ab;
+}
+
+.iso-page .site-footer {
+    border-top-color: #c5cae9;
+}
+
+.iso-page .site-footer .footer-links a {
+    color: #5c6bc0;
+}
+
+.iso-page .btn-set-name {
+    background: #5c6bc0;
+}
+
+.iso-page .btn-set-name:hover {
+    background: #3949ab;
+}
+
+.iso-page .btn-mod-messages {
+    background: #5c6bc0;
+}
+
+.iso-page .btn-mod-messages:hover {
+    background: #3949ab;
+}

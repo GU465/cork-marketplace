@@ -60,6 +60,22 @@ db.exec(`
     )
 `);
 
+db.exec(`
+    CREATE TABLE IF NOT EXISTS iso_items (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'other',
+        donation REAL NOT NULL,
+        image_path TEXT NOT NULL,
+        listed_by TEXT NOT NULL,
+        claimed INTEGER NOT NULL DEFAULT 0,
+        claimed_by TEXT,
+        claimed_at TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+`);
+
 function logAudit(itemId, action, details, performedBy) {
     db.prepare('INSERT INTO audit_log (item_id, action, details, performed_by) VALUES (?, ?, ?, ?)')
         .run(itemId, action, details, performedBy);
@@ -267,6 +283,83 @@ app.get('/api/help', (req, res) => {
     }
     const rows = db.prepare('SELECT * FROM help_requests ORDER BY created_at DESC').all();
     res.json(rows);
+});
+
+// ===== ISO (In Search Of) Routes =====
+
+app.get('/api/iso', (req, res) => {
+    const items = db.prepare('SELECT * FROM iso_items ORDER BY created_at DESC').all();
+    res.json(items);
+});
+
+app.post('/api/iso', upload.single('image'), async (req, res) => {
+    const { title, description, category, donation, listed_by, image_url } = req.body;
+    if (!title || !description || !donation || !listed_by) return res.status(400).json({ error: 'All fields are required.' });
+    const id = crypto.randomUUID();
+    let image_path = '/images/Marketplace Graphic.jpg';
+    if (req.file) {
+        image_path = '/uploads/' + req.file.filename;
+    } else if (image_url) {
+        try {
+            const urlObj = new URL(image_url);
+            if (!['http:', 'https:'].includes(urlObj.protocol)) return res.status(400).json({ error: 'Invalid image URL.' });
+            const response = await fetch(image_url);
+            if (!response.ok) throw new Error();
+            const ct = response.headers.get('content-type') || '';
+            if (!ct.startsWith('image/')) return res.status(400).json({ error: 'URL does not point to an image.' });
+            const ext = ct.split('/')[1].split(';')[0] || 'jpg';
+            const fn = crypto.randomUUID() + '.' + ext;
+            fs.writeFileSync(path.join(uploadsDir, fn), Buffer.from(await response.arrayBuffer()));
+            image_path = '/uploads/' + fn;
+        } catch (err) { return res.status(400).json({ error: 'Could not download image.' }); }
+    }
+    db.prepare('INSERT INTO iso_items (id, title, description, category, donation, image_path, listed_by) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .run(id, title.trim(), description.trim(), category || 'other', Number(donation), image_path, listed_by.trim());
+    logAudit(id, 'listed', `[ISO] ${title.trim()} — €${Number(donation).toFixed(2)}`, listed_by.trim());
+    res.status(201).json(db.prepare('SELECT * FROM iso_items WHERE id = ?').get(id));
+});
+
+app.patch('/api/iso/:id/offer', (req, res) => {
+    const { id } = req.params;
+    const { offered_by } = req.body;
+    if (!offered_by) return res.status(400).json({ error: 'Your name is required.' });
+    const item = db.prepare('SELECT * FROM iso_items WHERE id = ?').get(id);
+    if (!item) return res.status(404).json({ error: 'Request not found.' });
+    if (item.claimed) return res.status(409).json({ error: 'Already offered.' });
+    db.prepare("UPDATE iso_items SET claimed = 1, claimed_by = ?, claimed_at = datetime('now') WHERE id = ?").run(offered_by.trim(), id);
+    logAudit(id, 'claimed', `[ISO] Offered by ${offered_by.trim()}`, offered_by.trim());
+    res.json(db.prepare('SELECT * FROM iso_items WHERE id = ?').get(id));
+});
+
+app.delete('/api/iso/:id', (req, res) => {
+    const { id } = req.params;
+    const modKey = req.headers['x-mod-key'] || '';
+    if (modKey !== MODERATOR_PASSWORD) return res.status(403).json({ error: 'Unauthorized.' });
+    const item = db.prepare('SELECT * FROM iso_items WHERE id = ?').get(id);
+    if (!item) return res.status(404).json({ error: 'Not found.' });
+    logAudit(id, 'deleted', `[ISO] Deleted: ${item.title}`, 'moderator');
+    db.prepare('DELETE FROM iso_items WHERE id = ?').run(id);
+    res.json({ success: true });
+});
+
+app.patch('/api/iso/:id', (req, res) => {
+    const { id } = req.params;
+    const modKey = req.headers['x-mod-key'] || '';
+    if (modKey !== MODERATOR_PASSWORD) return res.status(403).json({ error: 'Unauthorized.' });
+    const item = db.prepare('SELECT * FROM iso_items WHERE id = ?').get(id);
+    if (!item) return res.status(404).json({ error: 'Not found.' });
+    const data = req.body;
+    const title = (data.title || item.title).trim();
+    const description = (data.description || item.description).trim();
+    const category = (data.category || item.category).trim();
+    const donation = Number(data.donation ?? item.donation);
+    const claimed = data.claimed !== undefined ? Number(data.claimed) : item.claimed;
+    const claimed_by = claimed ? item.claimed_by : null;
+    const claimed_at = claimed ? item.claimed_at : null;
+    db.prepare('UPDATE iso_items SET title=?, description=?, category=?, donation=?, claimed=?, claimed_by=?, claimed_at=? WHERE id=?')
+        .run(title, description, category, donation, claimed, claimed_by, claimed_at, id);
+    logAudit(id, 'edited', `[ISO] ${title}`, 'moderator');
+    res.json(db.prepare('SELECT * FROM iso_items WHERE id = ?').get(id));
 });
 
 // POST /api/help - Submit a help request
